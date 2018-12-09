@@ -1,0 +1,7 @@
+/vendor
+composer.lock
+progress.csv
+report.json
+.vscode
+*.model
+*.old
