@@ -20,13 +20,6 @@ echo '║                                                               ║' . P
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
-
-$report = new AggregateReport([
-    new MulticlassBreakdown(),
-    new ConfusionMatrix(),
-]);
-
 $samples = $labels = [];
 
 foreach (glob(__DIR__ . '/test/pos/*.txt') as $file) {
@@ -39,7 +32,14 @@ foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$testing = Labeled::build($samples, $labels)->randomize()->take(10000);
+$testing = Labeled::build($samples, $labels)->randomize()->take(2000);
+
+$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+
+$report = new AggregateReport([
+    new MulticlassBreakdown(),
+    new ConfusionMatrix(),
+]);
 
 $predictions = $estimator->predict($testing);
 

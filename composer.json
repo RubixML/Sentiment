@@ -1,12 +1,13 @@
 {
     "name": "rubix/sentiment",
     "type": "project",
-    "description": "Text sentiment analyzer based on a deep neural network.",
+    "description": "Text sentiment analyzer using a feed forward neural network.",
     "homepage": "https://github.com/RubixML/Sentiment",
     "license": "MIT",
     "keywords": [
         "php", "machine", "learning", "data", "science", "mining", "predictive", "modeling", "ai",
-        "classification", "neural", "network"
+        "classification", "neural", "network", "natural-language-processing", "nlp", "tf-idf",
+        "multi-layer-perceptron", "feed-forward"
     ],
     "authors": [
         {
@@ -21,7 +22,11 @@
         "league/csv": "^9.1",
         "rubix/ml": "dev-master"
     },
-    "scripts": {},
+    "scripts": {
+        "train": "@php train.php",
+        "predict": "@php predict.php",
+        "validate": "@php validate.php"
+    },
     "config": {
         "preferred-install": "dist",
         "sort-packages": true
