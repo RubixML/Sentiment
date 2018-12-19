@@ -1,13 +1,13 @@
 {
     "name": "rubix/sentiment",
     "type": "project",
-    "description": "Text sentiment analyzer using a feed forward neural network.",
+    "description": "Text sentiment analyzer using a multi layer feed forward neural network.",
     "homepage": "https://github.com/RubixML/Sentiment",
     "license": "MIT",
     "keywords": [
         "php", "machine", "learning", "data", "science", "mining", "predictive", "modeling", "ai",
         "classification", "neural", "network", "natural-language-processing", "nlp", "tf-idf",
-        "multi-layer-perceptron", "feed-forward"
+        "multi-layer-perceptron", "feed-forward", "bag-of-words"
     ],
     "authors": [
         {

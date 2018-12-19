@@ -181,12 +181,80 @@ $ composer predict
 ```
 
 ### Cross Validation
+To test the generalization performance of the trained network we'll use the testing samples provided to us to generate predictions and then analyze them compared to their ground-truth labels with a cross validation (*CV*) report. We do not use any training data for cross validation because we want to test the model on data it has never seen before.
 
-On the map ...
+> **Note**: The full code can be found in the `validate.php` file.
+
+We'll start by importing the testing samples like we did with the training samples. This time, however, we're only going to use a subset of the testing data to generate the report. After we build the dataset we call `randomize()` and `take()` to create a testing set containing 5000 random samples.
+
+```php
+use Rubix\ML\Datasets\Labeled;
+
+$samples = $labels = [];
+
+foreach (glob(__DIR__ . '/test/pos/*.txt') as $file) {
+        $samples[] = [file_get_contents($file)];
+        $labels[] = 'positive';
+}
+
+foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
+        $samples[] = [file_get_contents($file)];
+        $labels[] = 'negative';
+}
+
+$testing = Labeled::build($samples, $labels)->randomize()->take(5000);
+```
+
+Again, we use the Persistent Model wrapper to load the network we trainied earlier and then use it to make predictions on the testing set. The `predict()` method takes the testing set as input and returns an array of class predictions (*positive* or *negative*).
+
+> **Note**: Unlike the `proba()` method, which outputs the probability scores for each label, the `predict()` method only outputs the predicted class label.
+
+```php
+use Rubix\ML\PersistentModel;
+use Rubix\ML\Persisters\Filesystem;
+
+$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+
+$predictions = $estimator->predict($testing);
+```
+
+The last step is to generate the report and write it to a JSON file. The report we'll generate is actually a combination of two reports ([Multiclass Breakdown](https://github.com/RubixML/RubixML#multiclass-breakdown) and [Confusion Matrix](https://github.com/RubixML/RubixML#confusion-matrix)). We wrap each report in an [Aggregate Report](https://github.com/RubixML/RubixML#aggregate-report) such to generate all reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator broken down by class. The Confusion Matrix will give us an idea as to what labels the estimator is "confusing" for another. See the API Reference for more information.
+
+```php
+use Rubix\ML\CrossValidation\Reports\AggregateReport;
+use Rubix\ML\CrossValidation\Reports\ConfusionMatrix;
+use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
+
+$report = new AggregateReport([
+    new MulticlassBreakdown(),
+    new ConfusionMatrix(),
+]);
+
+$results = $report->generate($predictions, $testing->labels());
+
+file_put_contents(REPORT_FILE, json_encode($results, JSON_PRETTY_PRINT));
+```
+
+Now take a look at the report file in your favorite editor and see how well it performed. Our tests using the network architecture in this tutorial scores about 85% accurate. See if you can score higher by tuning the hyper-parameters or with a different architecture.
+
+To run the validation script from the project root:
+```sh
+$ php validate.php
+```
+
+or
+
+```sh
+$ composer validate
+```
 
 ### Wrap Up
 
-On the map ...
+- Natural Language Processing is the process of making sense of language using machine learning and other techniques
+- One way to represent a document is by using a *bag-of-words* approach such as word counts or TF-IDF values
+- Deep (Representation) Learning involves learning higher-order representations of the input data during training
+- Neural Networks are a type of Deep Learning
+- Neural Nets are composed of intermediate computational units called *hidden layers* that define the architecture of the network
 
 ## Original Dataset
 See DATASET_README. For comments or questions regarding the dataset please contact [Andrew Maas](http://www.andrew-maas.net).

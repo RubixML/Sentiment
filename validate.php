@@ -8,7 +8,6 @@ use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
 use Rubix\ML\CrossValidation\Reports\ConfusionMatrix;
 use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
-use League\Csv\Reader;
 
 const MODEL_FILE = 'sentiment.model';
 const REPORT_FILE = 'report.json';
@@ -36,12 +35,12 @@ $testing = Labeled::build($samples, $labels)->randomize()->take(2000);
 
 $estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
 
+$predictions = $estimator->predict($testing);
+
 $report = new AggregateReport([
     new MulticlassBreakdown(),
     new ConfusionMatrix(),
 ]);
-
-$predictions = $estimator->predict($testing);
 
 $results = $report->generate($predictions, $testing->labels());
 
