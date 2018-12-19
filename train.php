@@ -47,7 +47,7 @@ $training = Labeled::build($samples, $labels);
 $estimator = new PersistentModel(new Pipeline([
     new HTMLStripper(),
     new TextNormalizer(),
-    new WordCountVectorizer(10000, 10),
+    new WordCountVectorizer(10000, 3),
     new TfIdfTransformer(),
 ], new MultiLayerPerceptron([
     new Dense(100),

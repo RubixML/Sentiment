@@ -5,7 +5,6 @@ include __DIR__ . '/vendor/autoload.php';
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Datasets\Unlabeled;
 use Rubix\ML\Persisters\Filesystem;
-use Rubix\ML\Other\Functions\Argmax;
 
 const MODEL_FILE = 'sentiment.model';
 
@@ -16,18 +15,14 @@ echo '║                                                               ║' . P
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
 
+$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+
 $text = readline('Enter text to analyze: ');
 
 $dataset = Unlabeled::build([$text]);
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+$probabilities = $estimator->proba($dataset);
 
-$probabilities = $estimator->proba($dataset)[0];
+echo PHP_EOL . 'Probability :' . PHP_EOL;
 
-$prediction = Argmax::compute($probabilities);
-
-echo PHP_EOL; 
-
-echo 'Prediction :' . $prediction . PHP_EOL;
-
-var_dump($probabilities);
+var_dump($probabilities[0]);
