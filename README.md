@@ -2,6 +2,10 @@
 
 This is a multi layer feed forward neural network for text sentiment classification (*positive* or *negative*) trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use to validate the model. This example project demonstrates text feature representation and deep learning using a type of neural network classifier called a [Multi Layer Perceptron](https://github.com/RubixML/RubixML#multi-layer-perceptron).
 
+- **Difficulty**: Hard
+- **Training time**: Long
+- **Memory needed**: > 8G
+
 ## Installation
 
 Clone the repository locally:
@@ -90,8 +94,8 @@ $estimator = new PersistentModel(new Pipeline([
     new PReLU(0.25),
     new Dense(10),
     new PReLU(0.25),
-], 300, new Adam(0.0001), 1e-4),
-    new Filesystem(MODEL_FILE)
+], 300, new Adam(0.00001), 1e-4),
+    new Filesystem('sentiment.model')
 );
 ```
 
@@ -116,7 +120,7 @@ $writer->insertOne(['loss', 'score']);
 $writer->insertAll(array_map(null, $estimator->steps(), $estimator->scores()));
 ```
 
-We also use the PHP League's [CSV Writer](https://csv.thephpleague.com/) to dump the loss and validation scores at each epoch during training to a CSV file for easy importing into a plotting application such as [Tableu](https://public.tableau.com/en-us/s/) or [Excel](https://products.office.com/en-us/excel). Notice that the loss should go down and the validation score should go up as training progresses. If this is not the case, you may need to adjust some hyper-parameters.
+We also use the PHP League's [CSV Writer](https://csv.thephpleague.com/) to dump the loss and validation scores at each epoch during training to a CSV file for easy importing into a plotting application such as [Tableu](https://public.tableau.com/en-us/s/) or [Google Sheets](https://www.google.com/sheets/about/). Notice that the loss should go down and the validation score should go up as training progresses. If this is not the case, you may need to adjust the learning rate or other hyper-parameters.
 
 ![Cross Entropy Loss](https://github.com/RubixML/Sentiment/blob/master/docs/images/training-loss-score.png)
 
@@ -150,7 +154,7 @@ To load the trained MLP classifier, we need to tell Persistent Model where the m
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 ```
 
 Next, we'll use the build in PHP function `readline()` to prompt the user to enter some text and put the single sample in an [Unlabeled](https://github.com/RubixML/RubixML#unlabeled) dataset object.
@@ -215,7 +219,7 @@ Again, we use the Persistent Model wrapper to load the network we trainied earli
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 
 $predictions = $estimator->predict($testing);
 ```
@@ -234,7 +238,7 @@ $report = new AggregateReport([
 
 $results = $report->generate($predictions, $testing->labels());
 
-file_put_contents(REPORT_FILE, json_encode($results, JSON_PRETTY_PRINT));
+file_put_contents('report.json', json_encode($results, JSON_PRETTY_PRINT));
 ```
 
 Now take a look at the report file in your favorite editor and see how well it performed. Our tests using the network architecture in this tutorial scores about 85% accurate. See if you can score higher by tuning the hyper-parameters or with a different architecture.

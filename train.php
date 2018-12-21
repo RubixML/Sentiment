@@ -63,7 +63,7 @@ $estimator = new PersistentModel(new Pipeline([
     new PReLU(0.25),
     new Dense(10),
     new PReLU(0.25),
-], 300, new Adam(0.0001), 1e-4)),
+], 300, new Adam(0.00001), 1e-4)),
     new Filesystem(MODEL_FILE)
 );
 
