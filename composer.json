@@ -24,8 +24,8 @@
     },
     "scripts": {
         "train": "@php train.php",
-        "predict": "@php predict.php",
-        "validate": "@php validate.php"
+        "test": "@php validate.php",
+        "predict": "@php predict.php"
     },
     "config": {
         "preferred-install": "dist",
