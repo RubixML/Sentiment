@@ -179,7 +179,9 @@ You should see a prompt that looks something like this. If so, give it a try by 
 
 ```sh
 $ php predict.php
-$ Enter text to analyze: 
+
+...
+Enter text to analyze: 
 ```
 
 ### Cross Validation
