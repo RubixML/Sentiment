@@ -7,6 +7,7 @@ use Rubix\ML\PersistentModel;
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\Other\Loggers\Screen;
 use Rubix\ML\Persisters\Filesystem;
+use Rubix\ML\Other\Tokenizers\Word;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\PReLU;
 use Rubix\ML\NeuralNet\Layers\Dropout;
@@ -47,7 +48,7 @@ $training = Labeled::build($samples, $labels);
 $estimator = new PersistentModel(new Pipeline([
     new HTMLStripper(),
     new TextNormalizer(),
-    new WordCountVectorizer(10000, 3),
+    new WordCountVectorizer(10000, 3, new Word()),
     new TfIdfTransformer(),
 ], new MultiLayerPerceptron([
     new Dense(100),
@@ -60,9 +61,9 @@ $estimator = new PersistentModel(new Pipeline([
     new Activation(new LeakyReLU(0.1)),
     new Dropout(0.2),
     new Dense(30),
-    new PReLU(0.25),
+    new PReLU(),
     new Dense(10),
-    new PReLU(0.25),
+    new PReLU(),
 ], 300, new Adam(0.00005), 1e-4)),
     new Filesystem(MODEL_FILE)
 );

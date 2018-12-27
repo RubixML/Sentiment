@@ -23,6 +23,6 @@ $dataset = Unlabeled::build([$text]);
 
 $probabilities = $estimator->proba($dataset);
 
-echo PHP_EOL . 'Probability :' . PHP_EOL;
+echo PHP_EOL . 'Probabilities: ' . PHP_EOL;
 
 var_dump($probabilities[0]);

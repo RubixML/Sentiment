@@ -53,7 +53,7 @@ Since the features given to us are in raw text format, we'll need to convert the
 
 The Word Count Vectorizer is a common *bag of words* feature extractor that uses a fixed vocabulary and term counts to denote words that appear in a particular document. We elect to limit the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set. Another common text feature representation are TF-IDF values which take the term counts from Word Count Vectorizer and weight them by their inverse document frequencies (IDFs) which can be interpreted as their *importance* within the corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
-> **Note**: The word counts and TF-IDF feature representations for this example throw away all sentence structure. Despite that, the model works pretty well in practice. In the future you can consider using [N-Grams](https://github.com/RubixML/RubixML#n-gram) instead of single words to recover some structual information.
+> **Note**: The word counts and TF-IDF feature representations for this example throw away all sentence structure. Despite that, the model works pretty well in practice. Consider using [N-Grams](https://github.com/RubixML/RubixML#n-gram) or [Skip-Grams](https://github.com/RubixML/RubixML#skip-gram) instead of single words to recover some structual information in a future iteration of the model.
 
 The next thing we need to do is define the architecture of the network's hidden layers as the first hyper-parameter of the Multi Layer Perceptron base estimator. Each of the 5 hidden layers consist of a [Dense](https://github.com/RubixML/RubixML#dense) layer of neurons and a non-linear [Activation](https://github.com/RubixML/RubixML#activation) layer with optional [Dropout](https://github.com/RubixML/RubixML#dropout) regularization. The first 3 layers use a [Leaky ReLU](https://github.com/RubixML/RubixML#leaky-relu) activation function while the last 2 use a parametric form of the Leaky ReLU called [PReLU](https://github.com/RubixML/RubixML#prelu) (for *Parametric* Rectified Linear Unit). We've found that this architecture works pretty well for this problem but feel free to experiment and come up with your own.
 
@@ -66,6 +66,7 @@ use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Transformers\TfIdfTransformer;
+use Rubix\ML\Other\Tokenizers\Word;
 use Rubix\ML\Classifiers\MultiLayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\PReLU;
@@ -78,7 +79,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = new PersistentModel(new Pipeline([
     new HTMLStripper(),
     new TextNormalizer(),
-    new WordCountVectorizer(10000, 3),
+    new WordCountVectorizer(10000, 3, new Word()),
     new TfIdfTransformer(),
 ], new MultiLayerPerceptron([
     new Dense(100),
@@ -91,9 +92,9 @@ $estimator = new PersistentModel(new Pipeline([
     new Activation(new LeakyReLU(0.1)),
     new Dropout(0.2),
     new Dense(30),
-    new PReLU(0.25),
+    new PReLU(),
     new Dense(10),
-    new PReLU(0.25),
+    new PReLU(),
 ], 300, new Adam(0.00005), 1e-4),
     new Filesystem('sentiment.model')
 );
@@ -137,12 +138,6 @@ To run the training script from the project root:
 $ php train.php
 ```
 
-or
-
-```sh
-$ composer train
-```
-
 ### Prediction
 Now we'll build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
 
@@ -180,10 +175,11 @@ To run the prediction script from the project root:
 $ php predict.php
 ```
 
-or
+You should see a prompt that looks something like this. If so, give it a try by entering a sentence or two.
 
 ```sh
-$ composer predict
+$ php predict.php
+$ Enter text to analyze: 
 ```
 
 ### Cross Validation
@@ -246,12 +242,6 @@ Now take a look at the report file in your favorite editor and see how well it p
 To run the validation script from the project root:
 ```sh
 $ php validate.php
-```
-
-or
-
-```sh
-$ composer validate
 ```
 
 ### Wrap Up

@@ -31,7 +31,7 @@ foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$testing = Labeled::build($samples, $labels)->randomize()->take(2000);
+$testing = Labeled::build($samples, $labels)->randomize()->take(5000);
 
 $estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
 
