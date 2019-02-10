@@ -3,5 +3,6 @@ composer.lock
 progress.csv
 report.json
 .vscode
+.vs
 *.model
 *.old

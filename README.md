@@ -83,12 +83,16 @@ $estimator = new PersistentModel(new Pipeline([
     new TfIdfTransformer(),
 ], new MultiLayerPerceptron([
     new Dense(100),
-    new Activation(new LeakyReLU(0.1)),
-    new Dropout(0.2),
-    new Dense(70),
-    new Activation(new LeakyReLU(0.1)),
-    new Dropout(0.2),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
+    new Dense(100),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
+    new Dense(100),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
     new Dense(50),
+<<<<<<< HEAD
     new Activation(new LeakyReLU(0.1)),
     new Dropout(0.2),
     new Dense(30),
@@ -96,6 +100,12 @@ $estimator = new PersistentModel(new Pipeline([
     new Dense(10),
     new PReLU(),
 ], 300, new Adam(0.00005), 1e-4),
+=======
+    new PReLU(),
+    new Dense(25),
+    new PReLU(),
+], 200, new Adam(0.00001), 1e-4)),
+>>>>>>> Updated to Rubix ML beta
     new Filesystem('sentiment.model')
 );
 ```

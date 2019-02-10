@@ -19,6 +19,8 @@ echo '║                                                               ║' . P
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
 
+echo 'Loading data into memory ...' . PHP_EOL;
+
 $samples = $labels = [];
 
 foreach (glob(__DIR__ . '/test/pos/*.txt') as $file) {
@@ -31,7 +33,7 @@ foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$testing = Labeled::build($samples, $labels)->randomize()->take(5000);
+$testing = Labeled::build($samples, $labels)->randomize()->take(15000);
 
 $estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
 

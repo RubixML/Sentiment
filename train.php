@@ -10,9 +10,11 @@ use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\Other\Tokenizers\Word;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\PReLU;
+use Rubix\ML\Other\Tokenizers\SkipGram;
 use Rubix\ML\NeuralNet\Layers\Dropout;
 use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\NeuralNet\Optimizers\Adam;
+use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\NeuralNet\Layers\Activation;
 use Rubix\ML\Transformers\TfIdfTransformer;
@@ -30,6 +32,8 @@ echo '║ Text Sentiment Analyzer using Multi Layer Neural Network      ║' . P
 echo '║                                                               ║' . PHP_EOL;
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
+
+echo 'Loading data into memory ...' . PHP_EOL;
 
 $samples = $labels = [];
 
@@ -52,12 +56,16 @@ $estimator = new PersistentModel(new Pipeline([
     new TfIdfTransformer(),
 ], new MultiLayerPerceptron([
     new Dense(100),
-    new Activation(new LeakyReLU(0.1)),
-    new Dropout(0.2),
-    new Dense(70),
-    new Activation(new LeakyReLU(0.1)),
-    new Dropout(0.2),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
+    new Dense(100),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
+    new Dense(100),
+    new Activation(new LeakyReLU()),
+    new Dropout(0.1),
     new Dense(50),
+<<<<<<< HEAD
     new Activation(new LeakyReLU(0.1)),
     new Dropout(0.2),
     new Dense(30),
@@ -66,6 +74,13 @@ $estimator = new PersistentModel(new Pipeline([
     new PReLU(),
 ], 300, new Adam(0.00005), 1e-4)),
     new Filesystem(MODEL_FILE)
+=======
+    new PReLU(),
+    new Dense(25),
+    new PReLU(),
+], 200, new Adam(0.00001), 1e-4)),
+    new Filesystem('sentiment.model')
+>>>>>>> Updated to Rubix ML beta
 );
 
 $estimator->setLogger(new Screen('sentiment'));
@@ -76,4 +91,6 @@ $writer = Writer::createFromPath(PROGRESS_FILE, 'w+');
 $writer->insertOne(['loss', 'score']);
 $writer->insertAll(array_map(null, $estimator->steps(), $estimator->scores()));
 
-$estimator->prompt();
+if (strtolower(readline('Save this model? (y|[n]): ')) === 'y') {
+    $estimator->save();
+}

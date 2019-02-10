@@ -1,7 +1,7 @@
 {
     "name": "rubix/sentiment",
     "type": "project",
-    "description": "Text sentiment analyzer using a multi layer feed forward neural network.",
+    "description": "An example project using a multi layer feed forward neural network for text sentiment classification trained with 25,000 movie reviews from IMDB.",
     "homepage": "https://github.com/RubixML/Sentiment",
     "license": "MIT",
     "keywords": [
@@ -20,12 +20,7 @@
     "require": {
         "php": ">=7.1.3",
         "league/csv": "^9.1",
-        "rubix/ml": "dev-master"
-    },
-    "scripts": {
-        "train": "@php train.php",
-        "test": "@php validate.php",
-        "predict": "@php predict.php"
+        "rubix/ml": "^0.0.9-beta"
     },
     "config": {
         "preferred-install": "dist",
