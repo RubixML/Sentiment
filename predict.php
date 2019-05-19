@@ -17,7 +17,7 @@ echo PHP_EOL;
 
 $estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
 
-$text = readline('Enter text to analyze: ');
+$text = readline('Enter some text to analyze: ');
 
 $dataset = Unlabeled::build([$text]);
 

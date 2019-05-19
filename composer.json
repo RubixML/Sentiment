@@ -7,7 +7,7 @@
     "keywords": [
         "php", "machine", "learning", "data", "science", "mining", "predictive", "modeling", "ai",
         "classification", "neural", "network", "natural-language-processing", "nlp", "tf-idf",
-        "multi-layer-perceptron", "feed-forward", "bag-of-words"
+        "multi-layer-perceptron", "feed-forward", "bag-of-words", "n-gram"
     ],
     "authors": [
         {
@@ -19,8 +19,8 @@
     ],
     "require": {
         "php": ">=7.1.3",
-        "league/csv": "^9.1",
-        "rubix/ml": "^0.0.9-beta"
+        "league/csv": "^9.2",
+        "rubix/ml": "^0.0.12-beta"
     },
     "config": {
         "preferred-install": "dist",

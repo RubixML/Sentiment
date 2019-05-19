@@ -10,14 +10,14 @@ use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\Other\Tokenizers\Word;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\PReLU;
-use Rubix\ML\Other\Tokenizers\SkipGram;
-use Rubix\ML\NeuralNet\Layers\Dropout;
+use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Transformers\HTMLStripper;
-use Rubix\ML\NeuralNet\Optimizers\Adam;
 use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\NeuralNet\Layers\Activation;
+use Rubix\ML\NeuralNet\Optimizers\AdaMax;
 use Rubix\ML\Transformers\TfIdfTransformer;
+use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Classifiers\MultiLayerPerceptron;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
@@ -49,38 +49,28 @@ foreach (glob(__DIR__ . '/train/neg/*.txt') as $file) {
 
 $training = Labeled::build($samples, $labels);
 
-$estimator = new PersistentModel(new Pipeline([
-    new HTMLStripper(),
-    new TextNormalizer(),
-    new WordCountVectorizer(10000, 3, new Word()),
-    new TfIdfTransformer(),
-], new MultiLayerPerceptron([
-    new Dense(100),
-    new Activation(new LeakyReLU()),
-    new Dropout(0.1),
-    new Dense(100),
-    new Activation(new LeakyReLU()),
-    new Dropout(0.1),
-    new Dense(100),
-    new Activation(new LeakyReLU()),
-    new Dropout(0.1),
-    new Dense(50),
-<<<<<<< HEAD
-    new Activation(new LeakyReLU(0.1)),
-    new Dropout(0.2),
-    new Dense(30),
-    new PReLU(),
-    new Dense(10),
-    new PReLU(),
-], 300, new Adam(0.00005), 1e-4)),
-    new Filesystem(MODEL_FILE)
-=======
-    new PReLU(),
-    new Dense(25),
-    new PReLU(),
-], 200, new Adam(0.00001), 1e-4)),
-    new Filesystem('sentiment.model')
->>>>>>> Updated to Rubix ML beta
+$estimator = new PersistentModel(
+    new Pipeline([
+        new HTMLStripper(),
+        new TextNormalizer(),
+        new WordCountVectorizer(10000, 3, new NGram(2, 2)),
+        new TfIdfTransformer(),
+        new ZScaleStandardizer(),
+    ], new MultiLayerPerceptron([
+        new Dense(100),
+        new Activation(new LeakyReLU()),
+        new Dense(100),
+        new BatchNorm(),
+        new Activation(new LeakyReLU()),
+        new Dense(100),
+        new Activation(new LeakyReLU()),
+        new Dense(70),
+        new BatchNorm(),
+        new PReLU(),
+        new Dense(50),
+        new PReLU(),
+    ], 100, new AdaMax(0.0005))),
+    new Filesystem(MODEL_FILE, true)
 );
 
 $estimator->setLogger(new Screen('sentiment'));
@@ -91,6 +81,8 @@ $writer = Writer::createFromPath(PROGRESS_FILE, 'w+');
 $writer->insertOne(['loss', 'score']);
 $writer->insertAll(array_map(null, $estimator->steps(), $estimator->scores()));
 
-if (strtolower(readline('Save this model? (y|[n]): ')) === 'y') {
+echo 'Progress saved to ' . PROGRESS_FILE . PHP_EOL;
+
+if (strtolower(trim(readline('Save this model? (y|[n]): '))) === 'y') {
     $estimator->save();
 }
