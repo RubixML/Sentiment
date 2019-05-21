@@ -53,23 +53,22 @@ $estimator = new PersistentModel(
     new Pipeline([
         new HTMLStripper(),
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 3, new NGram(2, 2)),
+        new WordCountVectorizer(10000, 3, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultiLayerPerceptron([
         new Dense(100),
         new Activation(new LeakyReLU()),
         new Dense(100),
-        new BatchNorm(),
         new Activation(new LeakyReLU()),
         new Dense(100),
-        new Activation(new LeakyReLU()),
-        new Dense(70),
         new BatchNorm(),
-        new PReLU(),
+        new Activation(new LeakyReLU()),
         new Dense(50),
         new PReLU(),
-    ], 100, new AdaMax(0.0005))),
+        new Dense(30),
+        new PReLU(),
+    ], 200, new AdaMax(0.00005))),
     new Filesystem(MODEL_FILE, true)
 );
 
