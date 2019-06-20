@@ -12,6 +12,8 @@ use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
 const MODEL_FILE = 'sentiment.model';
 const REPORT_FILE = 'report.json';
 
+ini_set('memory_limit', '-1');
+
 echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
 echo '║ Cross Validation Report for Text Sentiment Analyzer           ║' . PHP_EOL;

@@ -26,6 +26,8 @@ use League\Csv\Writer;
 const MODEL_FILE = 'sentiment.model';
 const PROGRESS_FILE = 'progress.csv';
 
+ini_set('memory_limit', '-1');
+
 echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
 echo '║ Text Sentiment Analyzer using Multi Layer Neural Network      ║' . PHP_EOL;
