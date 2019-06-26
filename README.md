@@ -1,21 +1,20 @@
 # Text Sentiment Analyzer
 
-This is a multi layer feed forward neural network for text sentiment classification (*positive* or *negative*) trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use to validate the model. This example project demonstrates text feature representation and deep learning using a type of neural network classifier called a [Multi Layer Perceptron](https://github.com/RubixML/RubixML#multi-layer-perceptron).
+This is a multi layer feed forward neural network for text sentiment classification (*positive* or *negative*) trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use to validate the model. This example project demonstrates text feature representation and deep learning using a type of neural network classifier called a [Multi Layer Perceptron](https://docs.rubixml.com/en/latest/classifiers/multi-layer-perceptron.html).
 
 - **Difficulty**: Hard
 - **Training time**: Long
 - **Memory needed**: > 8G
 
 ## Installation
-
-Clone the repository locally:
+Clone the project locally with [Git](https://git-scm.com/):
 ```sh
 $ git clone https://github.com/RubixML/Sentiment
 ```
 
 > **Note**: Cloning may take longer than usual because of the large dataset.
 
-Install dependencies:
+Install project dependencies with [Composer](http://getcomposer.com):
 ```sh
 $ composer install
 ```
@@ -27,7 +26,7 @@ $ composer install
 Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of machine learning as Natural Language Processing (or *NLP* for short) because it involves making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text describing a movie review from the IMDB website. The samples have been pre labeled either positive or negative. In this tutorial we'll use the IMDB dataset to train a multi layer neural network to analyze the sentiment of text that we feed it.
 
 ### Training
-Before we dive into the architecture of the network, let's first take care of loading the provided dataset into a [Labeled](https://github.com/RubixML/RubixML#labeled) dataset object. The samples are given to us in `.txt` files and organized into `pos` and `neg` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add *positive* and *negative* labels to the dataset as a training signal.
+Before we dive into the architecture of the network, let's first take care of loading the provided dataset into a [Labeled](https://docs.rubixml.com/en/latest/datasets/labeled.html) dataset object. The samples are given to us in `.txt` files and organized into `pos` and `neg` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add *positive* and *negative* labels to the dataset as a training signal.
 
 > **Note**: The source code can be found in the [train.php](https://github.com/RubixML/Sentiment/blob/master/train.php) file in the project root.
 
@@ -49,11 +48,11 @@ foreach (glob(__DIR__ . '/train/neg/*.txt') as $file) {
 $training = new Labeled($samples, $labels);
 ```
 
-Since neural nets understand numbers but the features given to us are in raw text format, we'll need to convert them to continuous values in order for the network to understand and train effectively. We do so bu implementing a transformer pipeline consisting of an [HTML Stripper](https://github.com/RubixML/RubixML#html-stripper), [Text Normalizer](https://github.com/RubixML/RubixML#text-normalizer), [Word Count Vectorizer](https://github.com/RubixML/RubixML#word-count-vectorizer), [TF-IDF Transformer](https://github.com/RubixML/RubixML#tf-idf-transformer), and [Z Scale Standardizer](https://github.com/RubixML/RubixML#z-scale-standardizer). If you are unfamiliar with transformer pipelines see the [Credit Card Default](https://github.com/RubixML/Credit) tutorial for an introduction to the Pipeline wrapper.
+Since neural nets understand numbers but the features given to us are in raw text format, we'll need to convert them to continuous values in order for the network to understand and train effectively. We do so bu implementing a transformer pipeline consisting of an [HTML Stripper](https://docs.rubixml.com/en/latest/transformers/html-stripper.html), [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html), [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html), [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html), and [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html). If you are unfamiliar with transformer pipelines see the [Credit Card Default](https://github.com/RubixML/Credit) tutorial for an introduction to the Pipeline wrapper.
 
 The Word Count Vectorizer is a common *bag of words* feature extractor that uses a fixed vocabulary and term counts to denote words that appear in a particular document. We elect to limit the vocabulary to *10,000* of the most frequent words that satisfy the criteria of appearing in at least *3* different documents. In this way, we limit the amount of *noise* words that enter the training set. Another common text feature representation are TF-IDF values which take the term counts from Word Count Vectorizer and weight them by their inverse document frequencies (IDFs) which can be interpreted as their *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
-The next thing we need to do is define the architecture of the network's hidden layers as the first hyper-parameter of the Multi Layer Perceptron base estimator. Each of the 5 hidden layers consist of a [Dense](https://github.com/RubixML/RubixML#dense) layer of neurons and a non-linear [Activation](https://github.com/RubixML/RubixML#activation) layer with optional [Batch Norm](https://github.com/RubixML/RubixML#batch-norm) for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://github.com/RubixML/RubixML#leaky-relu) activation function while the last 2 use a parametric form of the Leaky ReLU called [PReLU](https://github.com/RubixML/RubixML#prelu) (for *Parametric* Rectified Linear Unit). We've found that this architecture works pretty well for this problem but feel free to experiment and come up with your own.
+The next thing we need to do is define the architecture of the network's hidden layers as the first hyper-parameter of the Multi Layer Perceptron base estimator. Each of the 5 hidden layers consist of a [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layer of neurons and a non-linear [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer with optional [Batch Norm](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 use a parametric form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) (for *Parametric* Rectified Linear Unit). We've found that this architecture works pretty well for this problem but feel free to experiment and come up with your own.
 
 > **Note**: For this tutorial, the "depth" of the hidden layers is distinguished as the number of *weight* layers which include the five Dense hidden layers and the output layer.
 
@@ -99,11 +98,11 @@ $estimator = new PersistentModel(
 );
 ```
 
-Observe the general pattern to the hidden layers of the network. [Dense](https://github.com/RubixML/RubixML#dense) layers linearly transform the input, then an [Activation](https://github.com/RubixML/RubixML#activation) layer applies a non-linear transformation, and the process repeats. Optionally we add  [Batch Normalization](https://github.com/RubixML/RubixML#batch-norm) as a method to speed up training and to prevent overfitting. For the activations we are using two different types of Activation layers with the [Leaky ReLU](https://github.com/RubixML/RubixML#leaky-relu) activation function. The last two hidden layers use a parametric form of the Leaky ReLU (called [PReLU](https://github.com/RubixML/RubixML#prelu)) that learns the optimal amount of *leakage* to apply during training. Refer to the API Reference on [hidden layers](https://github.com/RubixML/RubixML#hidden-layers) for further reading.
+Observe the general pattern to the hidden layers of the network. [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layers linearly transform the input, then an [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer applies a non-linear transformation, and the process repeats. Optionally we add  [Batch Normalization](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) as a method to speed up training and to prevent overfitting. For the activations we are using two different types of Activation layers with the [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function. The last two hidden layers use a parametric form of the Leaky ReLU (called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) that learns the optimal amount of *leakage* to apply during training.
 
-The remaining hyper-parameters *batch size*, *optimizer*, and *learning rate* can now be set. Batch size determines the number of training samples to run through the network at one time. The Gradient Descent optimizer determines the step size for each parameter in the network and most optimizers allow you to set a *learning rate* which controls the master step size. When setting the learning rate of an Optimizer, the important thing to note is that a learning rate that is too low will train slowly while a rate that is too high will prevent the network from learning at all. For the full list of hyper-parameters, check out the [Multi Layer Perceptron](https://github.com/RubixML/RubixML#multi-layer-perceptron) API reference.
+The remaining hyper-parameters *batch size*, *optimizer*, and *learning rate* can now be set. Batch size determines the number of training samples to run through the network at one time. The Gradient Descent optimizer determines the step size for each parameter in the network and most optimizers allow you to set a *learning rate* which controls the master step size. When setting the learning rate of an Optimizer, the important thing to note is that a learning rate that is too low will train slowly while a rate that is too high will prevent the network from learning at all. For the full list of hyper-parameters, check out the [Multi Layer Perceptron](https://docs.rubixml.com/en/latest/classifiers/multi-layer-perceptron.html) docs.
 
-Lastly, we'll wrap the entire Pipeline in a [Persistent Model](https://github.com/RubixML/RubixML#persistent-model) wrapper so we can save and load it later in a different process.
+Lastly, we'll wrap the entire Pipeline in a [Persistent Model](https://docs.rubixml.com/en/latest/persistent-model.html) wrapper so we can save and load it later in a different process.
 
 Now call `train()` with the training dataset we instantiated earlier to train the network.
 
@@ -131,7 +130,7 @@ Now we'll build a simple script that takes some text input from the terminal and
 
 > **Note**: The source code can be found in the [predict.php](https://github.com/RubixML/Sentiment/blob/master/predict.php) file in the project root.
 
-To load the trained MLP classifier, we need to tell Persistent Model where the model is located in storage with a [Persister](https://github.com/RubixML/RubixML#persisters) object. Persisters can be thought of as the storage *driver* used to persist the model.
+To load the trained MLP classifier, we need to tell Persistent Model where the model is located in storage with a [Persister](https://docs.rubixml.com/en/latest/persisters/api.html) object. Persisters can be thought of as the storage *driver* used to persist the model.
 
 ```php
 use Rubix\ML\PersistentModel;
@@ -140,7 +139,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 ```
 
-Next, we'll use the build in PHP function `readline()` to prompt the user to enter some text and put the single sample in an [Unlabeled](https://github.com/RubixML/RubixML#unlabeled) dataset object.
+Next, we'll use the build in PHP function `readline()` to prompt the user to enter some text and put the single sample in an [Unlabeled](https://docs.rubixml.com/en/latest/datasets/unlabeled.html) dataset object.
 
 ```php
 use Rubix\ML\Datasets\Unlabeled;
@@ -210,7 +209,7 @@ $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 $predictions = $estimator->predict($testing);
 ```
 
-The last step is to generate the report and write it to a JSON file. The report we'll generate is actually a combination of two reports ([Multiclass Breakdown](https://github.com/RubixML/RubixML#multiclass-breakdown) and [Confusion Matrix](https://github.com/RubixML/RubixML#confusion-matrix)). We wrap each report in an [Aggregate Report](https://github.com/RubixML/RubixML#aggregate-report) such to generate all reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator broken down by class. The Confusion Matrix will give us an idea as to what labels the estimator is "confusing" for another. See the [API Reference](https://github.com/RubixML/RubixML#reports) for more information.
+The last step is to generate the report and write it to a JSON file. The report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://docs.rubixml.com/en/latest/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://docs.rubixml.com/en/latest/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://docs.rubixml.com/en/latest/cross-validation/reports/aggregate-report.html) such to generate all reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator broken down by class. The Confusion Matrix will give us an idea as to what labels the estimator is "confusing" for another. See the [API Reference](https://docs.rubixml.com/en/latest/cross-validation/reports/api.html) for more information.
 
 ```php
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
