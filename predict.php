@@ -3,28 +3,21 @@
 include __DIR__ . '/vendor/autoload.php';
 
 use Rubix\ML\PersistentModel;
-use Rubix\ML\Datasets\Unlabeled;
 use Rubix\ML\Persisters\Filesystem;
-
-const MODEL_FILE = 'sentiment.model';
 
 ini_set('memory_limit', '-1');
 
 echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
-echo '║ Text Sentiment Analyzer using Multi Layer Neural Network      ║' . PHP_EOL;
+echo '║ Text Sentiment Analyzer using Multi Layer Perceptron          ║' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 
-$text = readline('Enter some text to analyze: ');
+while (empty($text)) $text = readline("Enter some text to analyze:\n");
 
-$dataset = Unlabeled::build([$text]);
+$prediction = $estimator->predictSample([$text]);
 
-$probabilities = $estimator->proba($dataset);
-
-echo PHP_EOL . 'Probabilities: ' . PHP_EOL;
-
-var_dump($probabilities[0]);
+echo "The sentiment is: $prediction" . PHP_EOL;

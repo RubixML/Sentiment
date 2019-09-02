@@ -23,14 +23,11 @@ use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
 use League\Csv\Writer;
 
-const MODEL_FILE = 'sentiment.model';
-const PROGRESS_FILE = 'progress.csv';
-
 ini_set('memory_limit', '-1');
 
 echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
-echo '║ Text Sentiment Analyzer using Multi Layer Neural Network      ║' . PHP_EOL;
+echo '║ Text Sentiment Analyzer using Multi Layer Perceptron          ║' . PHP_EOL;
 echo '║                                                               ║' . PHP_EOL;
 echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
 echo PHP_EOL;
@@ -71,18 +68,21 @@ $estimator = new PersistentModel(
         new Dense(30),
         new PReLU(),
     ], 200, new AdaMax(0.00005))),
-    new Filesystem(MODEL_FILE, true)
+    new Filesystem('sentiment.model', true)
 );
 
 $estimator->setLogger(new Screen('sentiment'));
 
 $estimator->train($training);
 
-$writer = Writer::createFromPath(PROGRESS_FILE, 'w+');
-$writer->insertOne(['loss', 'score']);
-$writer->insertAll(array_map(null, $estimator->steps(), $estimator->scores()));
+$scores = $estimator->scores();
+$losses = $estimator->steps();
 
-echo 'Progress saved to ' . PROGRESS_FILE . PHP_EOL;
+$writer = Writer::createFromPath('progress.csv', 'w+');
+$writer->insertOne(['score', 'loss']);
+$writer->insertAll(array_map(null, $scores, $losses));
+
+echo 'Progress saved to progress.csv' . PHP_EOL;
 
 if (strtolower(trim(readline('Save this model? (y|[n]): '))) === 'y') {
     $estimator->save();

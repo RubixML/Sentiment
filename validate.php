@@ -9,9 +9,6 @@ use Rubix\ML\CrossValidation\Reports\AggregateReport;
 use Rubix\ML\CrossValidation\Reports\ConfusionMatrix;
 use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
 
-const MODEL_FILE = 'sentiment.model';
-const REPORT_FILE = 'report.json';
-
 ini_set('memory_limit', '-1');
 
 echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
@@ -35,21 +32,21 @@ foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$testing = Labeled::build($samples, $labels)->randomize()->take(10000);
+$dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
 
-$estimator = PersistentModel::load(new Filesystem(MODEL_FILE));
+$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 
 echo 'Making predictions ...' . PHP_EOL;
 
-$predictions = $estimator->predict($testing);
+$predictions = $estimator->predict($dataset);
 
 $report = new AggregateReport([
     new MulticlassBreakdown(),
     new ConfusionMatrix(),
 ]);
 
-$results = $report->generate($predictions, $testing->labels());
+$results = $report->generate($predictions, $dataset->labels());
 
-file_put_contents(REPORT_FILE, json_encode($results, JSON_PRETTY_PRINT));
+file_put_contents('report.json', json_encode($results, JSON_PRETTY_PRINT));
 
-echo 'Report saved to ' . REPORT_FILE . PHP_EOL;
+echo 'Report saved to report.json' . PHP_EOL;
