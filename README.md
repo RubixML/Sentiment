@@ -56,7 +56,7 @@ Neural networks compute a non-linear continuous function and therefore require c
 
 First, we'll apply an [HTML Stripper](https://docs.rubixml.com/en/latest/transformers/html-stripper.html) to sanitize the text from any unimportant structure or formatting markup, just in case. Then [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html) will convert all characters to lowercase and remove any extra whitespace. The [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) is responsible for creating a continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the matrix to 0 mean and unit variance to help the network converge quicker.
 
-The Word Count Vectorizer is a common *bag of words* feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
+The Word Count Vectorizer is a *bag of words* feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
 
 Another common feature representation for words are their TF-IDF values which take the term frequencies (TF) from Word Count Vectorizer and weight them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
@@ -176,13 +176,13 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 ```
 
-Now we can use it to make predictions on the testing set. The `predict()` method takes a dataset as input and returns an array of predictions.
+Now we can use the estimator to make predictions on the testing set. The `predict()` method takes a dataset as input and returns an array of predictions.
 
 ```php
 $predictions = $estimator->predict($testing);
 ```
 
-The cross validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://docs.rubixml.com/en/latest/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://docs.rubixml.com/en/latest/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://docs.rubixml.com/en/latest/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* for another.
+The cross validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://docs.rubixml.com/en/latest/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://docs.rubixml.com/en/latest/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://docs.rubixml.com/en/latest/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for.
 
 ```php
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
@@ -201,7 +201,7 @@ To generate the report, pass in the predictions along with the labels from the t
 $results = $report->generate($predictions, $testing->labels());
 ```
 
-Now take a look at the report and see how well the model performs. Below is an excerpt taken from an example report.
+Take a look at the report and see how well the model performs. Below is an excerpt taken from an example report.
 
 ```json
 {
@@ -229,11 +229,11 @@ Now take a look at the report and see how well the model performs. Below is an e
 ```
 
 ### Predicting Single Samples
-Now we'll build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
+Now, we'll build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
 
 > **Note**: The source code for this example can be found in the [predict.php](https://github.com/RubixML/Sentiment/blob/master/predict.php) file in the project root.
 
-First, load the model from storage using the Persistent Model meta-estimator.
+First, load the model from storage using the static `load()` method on the Persistent Model meta-estimator and the Filesystem persister pointed to the file on disk.
 
 ```php
 use Rubix\ML\PersistentModel;
@@ -248,7 +248,7 @@ Next, we'll use the built-in PHP function `readline()` to prompt the user to ent
 while (empty($text)) $text = readline("Enter some text to analyze:\n");
 ```
 
-Then, make a prediction on a single sample using the `predictSample()` method on the learner and output it to the terminal.
+To make a prediction on a single sample, call the `predictSample()` method on the learner with the raw feature vector. Then we'll echo the prediction.
 
 ```php
 $prediction = $estimator->predictSample([$text]);
@@ -265,10 +265,10 @@ The sentiment is: positive
 
 ### Wrap Up
 - Natural Language Processing is the process of making sense of language using machine learning and other techniques.
-- One way to represent a document is by using a *bag-of-words* approach such as word counts or TF-IDF values.
+- One way to represent a document is by using a *bag-of-words* representation such as word counts or TF-IDF values.
 - Deep (Representation) Learning involves learning higher-order representations of the input data during training.
 - Neural Networks are composed of intermediate computational units called *hidden layers* that define the architecture of the network.
-- The global learning rate setting on an Optimizer controls the speed at which the network learns and should not be too high or low.
+- The global learning rate setting on an Optimizer controls the speed at which the network learns and should not be set too high or low.
 
 ### Next Steps
 Congratulations on completing the tutorial on text sentiment classification in Rubix ML using a multi layer neural network. We recommend playing around with the network architecture and hyper-parameters on your own to get a feel for how they effect the final model. Generally, adding more neurons and layers will improve performance but training may take longer. In addition, a larger vocabulary size may also improve the ability of the model at the cost of additional computation during training and inference.
