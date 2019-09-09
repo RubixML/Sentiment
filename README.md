@@ -13,7 +13,7 @@ $ git clone https://github.com/RubixML/Sentiment
 
 > **Note**: Cloning may take longer than usual because of the large dataset.
 
-Install project dependencies with [Composer](http://getcomposer.com):
+Install project dependencies with [Composer](http://getcomposer.org/):
 ```sh
 $ composer install
 ```
