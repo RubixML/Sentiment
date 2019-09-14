@@ -65,7 +65,7 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(50),
         new PReLU(),
-        new Dense(30),
+        new Dense(50),
         new PReLU(),
     ], 200, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)

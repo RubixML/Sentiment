@@ -1,9 +1,9 @@
-# Text Sentiment Analyzer
+# Rubix ML - Text Sentiment Analyzer
 This is a multi layer feed forward neural network for text sentiment classification trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use after training to test the model. This example project demonstrates text feature representation and deep learning in Rubix ML using a neural network classifier called a [Multi Layer Perceptron](https://docs.rubixml.com/en/latest/classifiers/multi-layer-perceptron.html).
 
-- **Difficulty**: Hard
-- **Training time**: Hours
-- **Memory needed**: > 8G
+- **Difficulty:** Hard
+- **Training time:** Hours
+- **Memory required:** 12G
 
 ## Installation
 Clone the project locally with [Git](https://git-scm.com/):
@@ -11,7 +11,7 @@ Clone the project locally with [Git](https://git-scm.com/):
 $ git clone https://github.com/RubixML/Sentiment
 ```
 
-> **Note**: Cloning may take longer than usual because of the large dataset.
+> **Note:** Cloning may take longer than usual because of the large dataset.
 
 Install project dependencies with [Composer](http://getcomposer.org/):
 ```sh
@@ -22,7 +22,13 @@ $ composer install
 - [PHP](https://php.net) 7.1.3 or above
 
 ## Tutorial
-Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of ML as Natural Language Processing (or *NLP* for short) because it involves machines making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text reviewing a movie on the IMDB website. The samples have been labeled positive or negative based on the score (1 - 10) the reviewer gave the movie. In this tutorial we'll use the IMDB dataset to train a multi layer neural network to predict the sentiment of any text we show it.
+
+### Introduction
+Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of ML as [Natural Language Processing](https://en.wikipedia.org/wiki/Natural_language_processing) (NLP) because it involves machines making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text reviewing a movie on the IMDB website. The samples have been labeled positive or negative based on the score (1 - 10) the reviewer gave the movie. In this tutorial we'll use the IMDB dataset to train a multi layer neural network to predict the sentiment of any text we show it.
+
+**Example**
+
+> "Story of a man who has unnatural feelings for a pig. Starts out with a opening scene that is a terrific example of absurd comedy. A formal orchestra audience is turned into an insane, violent mob by the crazy chantings of it's singers. Unfortunately it stays absurd the WHOLE time with no general narrative eventually making it just too off putting. ..."
 
 ### Extracting the Data
 The samples are given to us in individual `.txt` files and organized by label into `pos` and `neg` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add *positive* and *negative* labels to their own array.
@@ -43,7 +49,7 @@ foreach (glob(__DIR__ . '/train/neg/*.txt') as $file) {
 }
 ```
 
-We can instantiate a new [Labeled](https://docs.rubixml.com/en/latest/datasets/labeled.html) dataset object with the imported samples and labels.
+Now, we can instantiate a new [Labeled](https://docs.rubixml.com/en/latest/datasets/labeled.html) dataset object with the imported samples and labels.
 
 ```php
 use Rubix\ML\Datasets\Labeled;
@@ -56,12 +62,12 @@ Neural networks compute a non-linear continuous function and therefore require c
 
 First, we'll apply an [HTML Stripper](https://docs.rubixml.com/en/latest/transformers/html-stripper.html) to sanitize the text from any unimportant structure or formatting markup, just in case. Then [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html) will convert all characters to lowercase and remove any extra whitespace. The [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) is responsible for creating a continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the matrix to 0 mean and unit variance to help the network converge quicker.
 
-The Word Count Vectorizer is a *bag of words* feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
+The Word Count Vectorizer is a [bag of words](https://en.wikipedia.org/wiki/Bag-of-words_model) feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
 
-Another common feature representation for words are their TF-IDF values which take the term frequencies (TF) from Word Count Vectorizer and weight them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
+Another common feature representation for words are their [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weight them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
 ### Instantiating the Learner
-The next thing we'll do is define the architecture of the neural network. There are 5 hidden layers consisting of a [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 use a trainable form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+The next thing we'll do is define the architecture of the neural network. There are 5 hidden layers consisting of a [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
 use Rubix\ML\Pipeline;
@@ -98,7 +104,7 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(50),
         new PReLU(),
-        new Dense(30),
+        new Dense(50),
         new PReLU(),
     ], 200, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)
@@ -201,39 +207,97 @@ To generate the report, pass in the predictions along with the labels from the t
 $results = $report->generate($predictions, $testing->labels());
 ```
 
-Take a look at the report and see how well the model performs. Below is an excerpt taken from an example report.
+Take a look at the report and see how well the model performs. According to the example report below, our model is 87% accurate.
 
 ```json
-{
-    "overall": {
-        "accuracy": 0.8732,
-        "precision": 0.8731870662254005,
-        "recall": 0.8732522811796086,
-        "specificity": 0.8732522811796086,
-        "negative_predictive_value": 0.8731870662254005,
-        "false_discovery_rate": 0.12681293377459946,
-        "miss_rate": 0.12674771882039138,
-        "fall_out": 0.12674771882039138,
-        "false_omission_rate": 0.12681293377459946,
-        "f1_score": 0.8731922850186206,
-        "mcc": 0.7464393445561573,
-        "informedness": 0.7465045623592172,
-        "markedness": 0.7463741324508011,
-        "true_positives": 8732,
-        "true_negatives": 8732,
-        "false_positives": 1268,
-        "false_negatives": 1268,
-        "cardinality": 10000
+[
+    {
+        "overall": {
+            "accuracy": 0.8732,
+            "precision": 0.8731870662254005,
+            "recall": 0.8732522811796086,
+            "specificity": 0.8732522811796086,
+            "negative_predictive_value": 0.8731870662254005,
+            "false_discovery_rate": 0.12681293377459946,
+            "miss_rate": 0.12674771882039138,
+            "fall_out": 0.12674771882039138,
+            "false_omission_rate": 0.12681293377459946,
+            "f1_score": 0.8731922850186206,
+            "mcc": 0.7464393445561573,
+            "informedness": 0.7465045623592172,
+            "markedness": 0.7463741324508011,
+            "true_positives": 8732,
+            "true_negatives": 8732,
+            "false_positives": 1268,
+            "false_negatives": 1268,
+            "cardinality": 10000
+        },
+        "label": {
+            "positive": {
+                "accuracy": 0.8732,
+                "precision": 0.8673080777710964,
+                "recall": 0.8771538617474154,
+                "specificity": 0.8693507006118019,
+                "negative_predictive_value": 0.8790660546797047,
+                "false_discovery_rate": 0.13269192222890358,
+                "miss_rate": 0.12284613825258461,
+                "fall_out": 0.13064929938819814,
+                "false_omission_rate": 0.12093394532029533,
+                "f1_score": 0.8722031848417658,
+                "informedness": 0.7465045623592172,
+                "markedness": 0.7463741324508011,
+                "mcc": 0.7464393445561573,
+                "true_positives": 4327,
+                "true_negatives": 4405,
+                "false_positives": 662,
+                "false_negatives": 606,
+                "cardinality": 4933,
+                "density": 0.4933
+            },
+            "negative": {
+                "accuracy": 0.8732,
+                "precision": 0.8790660546797047,
+                "recall": 0.8693507006118019,
+                "specificity": 0.8771538617474154,
+                "negative_predictive_value": 0.8673080777710964,
+                "false_discovery_rate": 0.12093394532029533,
+                "miss_rate": 0.13064929938819814,
+                "fall_out": 0.12284613825258461,
+                "false_omission_rate": 0.13269192222890358,
+                "f1_score": 0.8741813851954753,
+                "informedness": 0.7465045623592172,
+                "markedness": 0.7463741324508011,
+                "mcc": 0.7464393445561573,
+                "true_positives": 4405,
+                "true_negatives": 4327,
+                "false_positives": 606,
+                "false_negatives": 662,
+                "cardinality": 5067,
+                "density": 0.5067
+            }
+        }
+    },
+    {
+        "positive": {
+            "positive": 4327,
+            "negative": 662
+        },
+        "negative": {
+            "positive": 606,
+            "negative": 4405
+        }
     }
-}
+]
 ```
 
+Nice job! Now you're ready to make predictions on some new data.
+
 ### Predicting Single Samples
-Now, we'll build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
+Now that we're confident with our model, let's build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
 
 > **Note**: The source code for this example can be found in the [predict.php](https://github.com/RubixML/Sentiment/blob/master/predict.php) file in the project root.
 
-First, load the model from storage using the static `load()` method on the Persistent Model meta-estimator and the Filesystem persister pointed to the file on disk.
+First, load the model from storage using the static `load()` method on the Persistent Model meta-estimator and the Filesystem persister pointed to the file containing the serialized model data.
 
 ```php
 use Rubix\ML\PersistentModel;
@@ -242,13 +306,13 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 ```
 
-Next, we'll use the built-in PHP function `readline()` to prompt the user to enter some text.
+Next, we'll use the built-in PHP function `readline()` to prompt the user to enter some text that we'll store in a variable.
 
 ```php
 while (empty($text)) $text = readline("Enter some text to analyze:\n");
 ```
 
-To make a prediction on a single sample, call the `predictSample()` method on the learner with the raw feature vector. Then we'll echo the prediction.
+To make a prediction on the text that was just entered, call the `predictSample()` method on the learner with the single sample. The `predictSample()` method returns a single prediction that we'll print out to the terminal.
 
 ```php
 $prediction = $estimator->predictSample([$text]);
@@ -276,5 +340,5 @@ Congratulations on completing the tutorial on text sentiment classification in R
 ## Original Dataset
 See DATASET_README. For comments or questions regarding the dataset please contact [Andrew Maas](http://www.andrew-maas.net).
 
-### References
-[1] Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
+## References
+>- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
