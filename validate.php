@@ -2,8 +2,8 @@
 
 include __DIR__ . '/vendor/autoload.php';
 
-use Rubix\ML\PersistentModel;
 use Rubix\ML\Datasets\Labeled;
+use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
 use Rubix\ML\CrossValidation\Reports\ConfusionMatrix;
@@ -11,23 +11,16 @@ use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
 
 ini_set('memory_limit', '-1');
 
-echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
-echo '║                                                               ║' . PHP_EOL;
-echo '║ Cross Validation Report for Text Sentiment Analyzer           ║' . PHP_EOL;
-echo '║                                                               ║' . PHP_EOL;
-echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
-echo PHP_EOL;
-
 echo 'Loading data into memory ...' . PHP_EOL;
 
 $samples = $labels = [];
 
-foreach (glob(__DIR__ . '/test/pos/*.txt') as $file) {
+foreach (glob('test/pos/*.txt') as $file) {
         $samples[] = [file_get_contents($file)];
         $labels[] = 'positive';
 }
 
-foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
+foreach (glob('test/neg/*.txt') as $file) {
         $samples[] = [file_get_contents($file)];
         $labels[] = 'negative';
 }

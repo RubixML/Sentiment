@@ -5,43 +5,35 @@ include __DIR__ . '/vendor/autoload.php';
 use Rubix\ML\Pipeline;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Datasets\Labeled;
-use Rubix\ML\Other\Loggers\Screen;
-use Rubix\ML\Persisters\Filesystem;
-use Rubix\ML\Other\Tokenizers\Word;
-use Rubix\ML\NeuralNet\Layers\Dense;
-use Rubix\ML\NeuralNet\Layers\PReLU;
-use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Transformers\HTMLStripper;
-use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\Transformers\TextNormalizer;
-use Rubix\ML\NeuralNet\Layers\Activation;
-use Rubix\ML\NeuralNet\Optimizers\AdaMax;
+use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
+use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Classifiers\MultiLayerPerceptron;
-use Rubix\ML\Transformers\WordCountVectorizer;
+use Rubix\ML\NeuralNet\Layers\Dense;
+use Rubix\ML\NeuralNet\Layers\Activation;
+use Rubix\ML\NeuralNet\Layers\PReLU;
+use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
+use Rubix\ML\NeuralNet\Optimizers\AdaMax;
+use Rubix\ML\Persisters\Filesystem;
+use Rubix\ML\Other\Loggers\Screen;
 use League\Csv\Writer;
 
 ini_set('memory_limit', '-1');
-
-echo '╔═══════════════════════════════════════════════════════════════╗' . PHP_EOL;
-echo '║                                                               ║' . PHP_EOL;
-echo '║ Text Sentiment Analyzer using Multi Layer Perceptron          ║' . PHP_EOL;
-echo '║                                                               ║' . PHP_EOL;
-echo '╚═══════════════════════════════════════════════════════════════╝' . PHP_EOL;
-echo PHP_EOL;
 
 echo 'Loading data into memory ...' . PHP_EOL;
 
 $samples = $labels = [];
 
-foreach (glob(__DIR__ . '/train/pos/*.txt') as $file) {
+foreach (glob('train/pos/*.txt') as $file) {
         $samples[] = [file_get_contents($file)];
         $labels[] = 'positive';
 }
 
-foreach (glob(__DIR__ . '/train/neg/*.txt') as $file) {
+foreach (glob('train/neg/*.txt') as $file) {
         $samples[] = [file_get_contents($file)];
         $labels[] = 'negative';
 }

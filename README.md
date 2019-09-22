@@ -38,12 +38,12 @@ The samples are given to us in individual `.txt` files and organized by label in
 ```php
 $samples = $labels = [];
 
-foreach (glob(__DIR__ . '/train/pos/*.txt') as $file) {
+foreach (glob('train/pos/*.txt') as $file) {
     $samples[] = [file_get_contents($file)];
     $labels[] = 'positive';
 }
 
-foreach (glob(__DIR__ . '/train/neg/*.txt') as $file) {
+foreach (glob('train/neg/*.txt') as $file) {
     $samples[] = [file_get_contents($file)];
     $labels[] = 'negative';
 }
@@ -123,7 +123,7 @@ $estimator->train($training);
 ```
 
 ### Validation Score and Loss
-During training, the learner will record the validation score and the training loss at each epoch. The validation score is calculated using the default [F Beta](https://docs.rubixml.com/en/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://docs.rubixml.com/en/latest/neural-network/cost-functions/cross-entropy.html) loss) computed over the training data. We can vizualize the training progress by plotting these metrics. To export the scores and losses you can call the additional `scores()` and `steps()` methods respectively.
+During training, the learner will record the validation score and the training loss at each epoch. The validation score is calculated using the default [F Beta](https://docs.rubixml.com/en/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://docs.rubixml.com/en/latest/neural-network/cost-functions/cross-entropy.html) loss) computed over the training data. We can visualize the training progress by plotting these metrics. To export the scores and losses you can call the additional `scores()` and `steps()` methods respectively.
 
 ```php
 $scores = $estimator->scores();
@@ -154,12 +154,12 @@ We'll start by importing the testing samples from the `test` folder like we did 
 ```php
 $samples = $labels = [];
 
-foreach (glob(__DIR__ . '/test/pos/*.txt') as $file) {
+foreach (glob('test/pos/*.txt') as $file) {
     $samples[] = [file_get_contents($file)];
     $labels[] = 'positive';
 }
 
-foreach (glob(__DIR__ . '/test/neg/*.txt') as $file) {
+foreach (glob('test/neg/*.txt') as $file) {
     $samples[] = [file_get_contents($file)];
     $labels[] = 'negative';
 }
@@ -340,5 +340,5 @@ Congratulations on completing the tutorial on text sentiment classification in R
 ## Original Dataset
 See DATASET_README. For comments or questions regarding the dataset please contact [Andrew Maas](http://www.andrew-maas.net).
 
-## References
+### References
 >- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
