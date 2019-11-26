@@ -1,5 +1,5 @@
 # Rubix ML - Text Sentiment Analyzer
-This is a multi layer feed forward neural network for text sentiment classification trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use after training to test the model. This example project demonstrates text feature representation and deep learning in Rubix ML using a neural network classifier called a [Multi Layer Perceptron](https://docs.rubixml.com/en/latest/classifiers/multi-layer-perceptron.html).
+This is a multilayer feed forward neural network for text sentiment classification trained on 25,000 movie reviews from the [IMDB](https://www.imdb.com/) movie reviews website. The dataset also provides another 25,000 samples which we use after training to test the model. This example project demonstrates text feature representation and deep learning in Rubix ML using a neural network classifier called a Multilayer Perceptron.
 
 - **Difficulty:** Hard
 - **Training time:** Hours
@@ -24,7 +24,7 @@ $ composer install
 ## Tutorial
 
 ### Introduction
-Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of ML as [Natural Language Processing](https://en.wikipedia.org/wiki/Natural_language_processing) (NLP) because it involves machines making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text reviewing a movie on the IMDB website. The samples have been labeled positive or negative based on the score (1 - 10) the reviewer gave to the movie. From there, we'll use the IMDB dataset to train a multi layer neural network to predict the sentiment of any English text we show it.
+Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of ML as [Natural Language Processing](https://en.wikipedia.org/wiki/Natural_language_processing) (NLP) because it involves machines making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text reviewing a movie on the IMDB website. The samples have been labeled positive or negative based on the score (1 - 10) the reviewer gave to the movie. From there, we'll use the IMDB dataset to train a multilayer neural network to predict the sentiment of any English text we show it.
 
 **Example**
 
@@ -67,11 +67,11 @@ The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed 
 Another common feature representation for words are their [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weight them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
 ### Instantiating the Learner
-The next thing we'll do is define the architecture of the neural network. There are 5 hidden layers consisting of a [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://docs.rubixml.com/en/latest/classifiers/multilayer-perceptron.html) classifier. The network uses 5 hidden layers consisting of a [Dense](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/en/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/en/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
-use Rubix\ML\Pipeline;
 use Rubix\ML\PersistentModel;
+use Rubix\ML\Pipeline;
 use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
@@ -111,7 +111,7 @@ $estimator = new PersistentModel(
 );
 ```
 
-We'll choose a batch size of 200 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. The AdaMax optimizer is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
+We'll choose a batch size of 200 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
 
 Lastly, we'll wrap the entire estimator in a [Persistent Model](https://docs.rubixml.com/en/latest/persistent-model.html) wrapper so we can save and load it later in our validation script. The [Filesystem](https://docs.rubixml.com/en/latest/persisters/filesystem.html) persister object tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
 
@@ -327,15 +327,8 @@ Enter some text to analyze: Rubix ML is the best
 The sentiment is: positive
 ```
 
-### Wrap Up
-- Natural Language Processing is the process of making sense of language using machine learning and other techniques.
-- One way to represent a document is by using a *bag-of-words* representation such as word counts or TF-IDF values.
-- Deep (Representation) Learning involves learning higher-order representations of the input data during training.
-- Neural Networks are composed of intermediate computational units called *hidden layers* that define the architecture of the network.
-- The global learning rate setting on an Optimizer controls the speed at which the network learns and should not be set too high or low.
-
 ### Next Steps
-Congratulations on completing the tutorial on text sentiment classification in Rubix ML using a multi layer neural network. We recommend playing around with the network architecture and hyper-parameters on your own to get a feel for how they effect the final model. Generally, adding more neurons and layers will improve performance but training may take longer. In addition, a larger vocabulary size may also improve the ability of the model at the cost of additional computation during training and inference.
+Congratulations on completing the tutorial on text sentiment classification in Rubix ML using a Multilayer Perceptron. We recommend playing around with the network architecture and hyper-parameters on your own to get a feel for how they effect the final model. Generally, adding more neurons and layers will improve performance but training may take longer. In addition, a larger vocabulary size may also improve the model at the cost of additional computation during training and inference.
 
 ## Original Dataset
 See DATASET_README. For comments or questions regarding the dataset please contact [Andrew Maas](http://www.andrew-maas.net).
