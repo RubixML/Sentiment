@@ -2,15 +2,15 @@
 
 include __DIR__ . '/vendor/autoload.php';
 
-use Rubix\ML\Pipeline;
-use Rubix\ML\PersistentModel;
 use Rubix\ML\Datasets\Labeled;
+use Rubix\ML\PersistentModel;
+use Rubix\ML\Pipeline;
 use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
+use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
-use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Classifiers\MultiLayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\Activation;
@@ -66,6 +66,8 @@ $estimator = new PersistentModel(
 );
 
 $estimator->setLogger(new Screen('sentiment'));
+
+echo 'Training ...' . PHP_EOL;
 
 $estimator->train($training);
 
