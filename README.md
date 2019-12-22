@@ -54,7 +54,7 @@ Now, we can instantiate a new [Labeled](https://docs.rubixml.com/en/latest/datas
 ```php
 use Rubix\ML\Datasets\Labeled;
 
-$training = new Labeled($samples, $labels);
+$dataset = new Labeled($samples, $labels);
 ```
 
 ### Dataset Preparation
@@ -119,7 +119,7 @@ Lastly, we'll wrap the entire estimator in a [Persistent Model](https://docs.rub
 Now, you can call the `train()` method with the training dataset we instantiated earlier to start the training process.
 
 ```php
-$estimator->train($training);
+$estimator->train($dataset);
 ```
 
 ### Validation Score and Loss
@@ -185,7 +185,7 @@ $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 Now we can use the estimator to make predictions on the testing set. The `predict()` method takes a dataset as input and returns an array of predictions from the model.
 
 ```php
-$predictions = $estimator->predict($testing);
+$predictions = $estimator->predict($dataset);
 ```
 
 The cross validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://docs.rubixml.com/en/latest/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://docs.rubixml.com/en/latest/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://docs.rubixml.com/en/latest/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for.
@@ -204,7 +204,7 @@ $report = new AggregateReport([
 To generate the report, pass in the predictions along with the labels from the testing set to the `generate()` method on the report.
 
 ```php
-$results = $report->generate($predictions, $testing->labels());
+$results = $report->generate($predictions, $dataset->labels());
 ```
 
 Take a look at the report and see how well the model performs. According to the example report below, our model is 87% accurate.
