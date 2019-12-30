@@ -19,7 +19,7 @@ $ composer install
 ```
 
 ## Requirements
-- [PHP](https://php.net) 7.1.3 or above
+- [PHP](https://php.net) 7.2 or above
 
 ## Tutorial
 
