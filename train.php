@@ -40,7 +40,7 @@ foreach (glob('train/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$training = Labeled::build($samples, $labels);
+$dataset = Labeled::build($samples, $labels);
 
 $estimator = new PersistentModel(
     new Pipeline([
@@ -69,7 +69,7 @@ $estimator->setLogger(new Screen('sentiment'));
 
 echo 'Training ...' . PHP_EOL;
 
-$estimator->train($training);
+$estimator->train($dataset);
 
 $scores = $estimator->scores();
 $losses = $estimator->steps();
