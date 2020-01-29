@@ -40,7 +40,7 @@ foreach (glob('train/neg/*.txt') as $file) {
         $labels[] = 'negative';
 }
 
-$dataset = Labeled::build($samples, $labels);
+$dataset = new Labeled($samples, $labels);
 
 $estimator = new PersistentModel(
     new Pipeline([
@@ -54,7 +54,7 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(100),
         new Activation(new LeakyReLU()),
-        new Dense(100),
+        new Dense(100, false),
         new BatchNorm(),
         new Activation(new LeakyReLU()),
         new Dense(50),
