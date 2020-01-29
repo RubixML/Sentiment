@@ -11,7 +11,7 @@ use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Other\Tokenizers\NGram;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
-use Rubix\ML\Classifiers\MultiLayerPerceptron;
+use Rubix\ML\Classifiers\MultilayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\Activation;
 use Rubix\ML\NeuralNet\Layers\PReLU;
@@ -49,7 +49,7 @@ $estimator = new PersistentModel(
         new WordCountVectorizer(10000, 3, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
-    ], new MultiLayerPerceptron([
+    ], new MultilayerPerceptron([
         new Dense(100),
         new Activation(new LeakyReLU()),
         new Dense(100),
