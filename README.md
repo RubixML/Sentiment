@@ -31,21 +31,18 @@ Our objective is to predict the sentiment (either *positive* or *negative*) of a
 > "Story of a man who has unnatural feelings for a pig. Starts out with a opening scene that is a terrific example of absurd comedy. A formal orchestra audience is turned into an insane, violent mob by the crazy chantings of it's singers. Unfortunately it stays absurd the WHOLE time with no general narrative eventually making it just too off putting. ..."
 
 ### Extracting the Data
-The samples are given to us in individual `.txt` files and organized by label into `pos` and `neg` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add the corresponding *positive* and *negative* labels in their own array.
+The samples are given to us in individual `.txt` files and organized by label into `positive` and `negative` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add the corresponding *positive* and *negative* labels in their own array.
 
 > **Note**: The source code for this example can be found in the [train.php](https://github.com/RubixML/Sentiment/blob/master/train.php) file in the project root.
 
 ```php
 $samples = $labels = [];
 
-foreach (glob('train/pos/*.txt') as $file) {
-    $samples[] = [file_get_contents($file)];
-    $labels[] = 'positive';
-}
-
-foreach (glob('train/neg/*.txt') as $file) {
-    $samples[] = [file_get_contents($file)];
-    $labels[] = 'negative';
+foreach (['positive', 'negative'] as $label) {
+    foreach (glob("train/$label/*.txt") as $file) {
+        $samples[] = [file_get_contents($file)];
+        $labels[] = $label;
+    }
 }
 ```
 
@@ -154,14 +151,11 @@ We'll start by importing the testing samples from the `test` folder like we did 
 ```php
 $samples = $labels = [];
 
-foreach (glob('test/pos/*.txt') as $file) {
-    $samples[] = [file_get_contents($file)];
-    $labels[] = 'positive';
-}
-
-foreach (glob('test/neg/*.txt') as $file) {
-    $samples[] = [file_get_contents($file)];
-    $labels[] = 'negative';
+foreach (['positive', 'negative'] as $label) {
+    foreach (glob("test/$label/*.txt") as $file) {
+        $samples[] = [file_get_contents($file)];
+        $labels[] = $label;
+    }
 }
 ```
 

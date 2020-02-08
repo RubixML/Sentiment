@@ -15,14 +15,11 @@ echo 'Loading data into memory ...' . PHP_EOL;
 
 $samples = $labels = [];
 
-foreach (glob('test/pos/*.txt') as $file) {
+foreach (['positive', 'negative'] as $label) {
+    foreach (glob("test/$label/*.txt") as $file) {
         $samples[] = [file_get_contents($file)];
-        $labels[] = 'positive';
-}
-
-foreach (glob('test/neg/*.txt') as $file) {
-        $samples[] = [file_get_contents($file)];
-        $labels[] = 'negative';
+        $labels[] = $label;
+    }
 }
 
 $dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
