@@ -58,7 +58,7 @@ $estimator = new PersistentModel(
         new PReLU(),
         new Dense(50),
         new PReLU(),
-    ], 200, new AdaMax(0.0001))),
+    ], 512, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)
 );
 

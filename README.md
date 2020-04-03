@@ -103,12 +103,12 @@ $estimator = new PersistentModel(
         new PReLU(),
         new Dense(50),
         new PReLU(),
-    ], 200, new AdaMax(0.0001))),
+    ], 512, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)
 );
 ```
 
-We'll choose a batch size of 200 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
+We'll choose a batch size of 512 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
 
 Lastly, we'll wrap the entire estimator in a [Persistent Model](https://docs.rubixml.com/en/latest/persistent-model.html) wrapper so we can save and load it later in our validation script. The [Filesystem](https://docs.rubixml.com/en/latest/persisters/filesystem.html) persister object tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
 

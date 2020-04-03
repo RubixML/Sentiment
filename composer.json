@@ -20,10 +20,12 @@
     "require": {
         "php": ">=7.2",
         "league/csv": "^9.5",
-        "rubix/ml": "^0.0.20-rc1"
+        "rubix/ml": "^0.1.0-rc2"
     },
     "config": {
         "preferred-install": "dist",
         "sort-packages": true
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
