@@ -57,7 +57,7 @@ $dataset = new Labeled($samples, $labels);
 ### Dataset Preparation
 Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://docs.rubixml.com/en/latest/pipeline.html).
 
-First, we'll apply an [HTML Stripper](https://docs.rubixml.com/en/latest/transformers/html-stripper.html) to sanitize the text from any unimportant structure or formatting markup, just in case. Then [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html) will convert all characters to lowercase and remove any extra whitespace. The [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) is responsible for creating a continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
+First, we'll convert all characters to lowercase and remove any extra whitespace using [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html). Then, [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) is responsible for creating a continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
 The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
 
@@ -69,7 +69,6 @@ The next thing we'll do is define the architecture of the neural network and ins
 ```php
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
-use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Transformers\TfIdfTransformer;
@@ -86,7 +85,6 @@ use Rubix\ML\Persisters\Filesystem;
 
 $estimator = new PersistentModel(
     new Pipeline([
-        new HTMLStripper(),
         new TextNormalizer(),
         new WordCountVectorizer(10000, 3, new NGram(1, 2)),
         new TfIdfTransformer(),
@@ -96,19 +94,19 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(100),
         new Activation(new LeakyReLU()),
-        new Dense(100, false),
+        new Dense(100),
         new BatchNorm(),
         new Activation(new LeakyReLU()),
         new Dense(50),
         new PReLU(),
         new Dense(50),
         new PReLU(),
-    ], 512, new AdaMax(0.0001))),
+    ], 256, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)
 );
 ```
 
-We'll choose a batch size of 512 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
+We'll choose a batch size of 256 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/en/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/en/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
 
 Lastly, we'll wrap the entire estimator in a [Persistent Model](https://docs.rubixml.com/en/latest/persistent-model.html) wrapper so we can save and load it later in our validation script. The [Filesystem](https://docs.rubixml.com/en/latest/persisters/filesystem.html) persister object tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
 

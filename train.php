@@ -5,7 +5,6 @@ include __DIR__ . '/vendor/autoload.php';
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
-use Rubix\ML\Transformers\HTMLStripper;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Other\Tokenizers\NGram;
@@ -41,7 +40,6 @@ $dataset = new Labeled($samples, $labels);
 
 $estimator = new PersistentModel(
     new Pipeline([
-        new HTMLStripper(),
         new TextNormalizer(),
         new WordCountVectorizer(10000, 3, new NGram(1, 2)),
         new TfIdfTransformer(),
@@ -51,14 +49,14 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(100),
         new Activation(new LeakyReLU()),
-        new Dense(100, false),
+        new Dense(100),
         new BatchNorm(),
         new Activation(new LeakyReLU()),
         new Dense(50),
         new PReLU(),
         new Dense(50),
         new PReLU(),
-    ], 512, new AdaMax(0.0001))),
+    ], 256, new AdaMax(0.0001))),
     new Filesystem('sentiment.model', true)
 );
 
