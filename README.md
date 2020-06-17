@@ -3,7 +3,13 @@ This is a multilayer feed forward neural network for text sentiment classificati
 
 - **Difficulty:** Hard
 - **Training time:** Hours
-- **Memory required:** 12G
+
+## Requirements
+- [PHP](https://php.net) 7.2 or above
+
+#### Recommended
+- [Tensor extension](https://github.com/RubixML/Tensor) for faster training and inference
+- 12G of system memory or more
 
 ## Installation
 Clone the project locally with [Git](https://git-scm.com/):
@@ -17,9 +23,6 @@ Install project dependencies with [Composer](http://getcomposer.org/):
 ```sh
 $ composer install
 ```
-
-## Requirements
-- [PHP](https://php.net) 7.2 or above
 
 ## Tutorial
 
@@ -327,3 +330,6 @@ See DATASET_README. For comments or questions regarding the dataset please conta
 
 ### References
 >- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
+
+## License
+The code is licensed [Apache 2.0](LICENSE.md) and the tutorial is licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
