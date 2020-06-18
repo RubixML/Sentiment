@@ -97,7 +97,7 @@ $estimator = new PersistentModel(
         new Activation(new LeakyReLU()),
         new Dense(100),
         new Activation(new LeakyReLU()),
-        new Dense(100),
+        new Dense(100, 0.0, false),
         new BatchNorm(),
         new Activation(new LeakyReLU()),
         new Dense(50),
