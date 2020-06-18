@@ -4,25 +4,20 @@ This is a multilayer feed forward neural network for text sentiment classificati
 - **Difficulty:** Hard
 - **Training time:** Hours
 
+## Installation
+Clone the project locally using [Composer](https://getcomposer.org/):
+```sh
+$ composer create-project rubix/sentiment
+```
+
+> **Note:** Installation may take longer than usual because of the large dataset.
+
 ## Requirements
 - [PHP](https://php.net) 7.2 or above
 
 #### Recommended
 - [Tensor extension](https://github.com/RubixML/Tensor) for faster training and inference
 - 12G of system memory or more
-
-## Installation
-Clone the project locally with [Git](https://git-scm.com/):
-```sh
-$ git clone https://github.com/RubixML/Sentiment
-```
-
-> **Note:** Cloning may take longer than usual because of the large dataset.
-
-Install project dependencies with [Composer](http://getcomposer.org/):
-```sh
-$ composer install
-```
 
 ## Tutorial
 
@@ -142,6 +137,11 @@ Finally, we save the model so we can load it later in our other scripts.
 $estimator->save();
 ```
 
+Now you're ready to run the training script from the command line.
+```php
+$ php train.php
+```
+
 ### Cross Validation
 To test the generalization performance of the trained network we'll use the testing samples provided to us to generate predictions and then analyze them compared to their ground-truth labels using a cross validation report. Note that we do not use any training data for cross validation because we want to test the model on samples it has never seen before.
 
@@ -200,6 +200,11 @@ To generate the report, pass in the predictions along with the labels from the t
 
 ```php
 $results = $report->generate($predictions, $dataset->labels());
+```
+
+Execute the validation script from the command line like we see below.
+```sh
+$ php validate.php
 ```
 
 Take a look at the report and see how well the model performs. According to the example report below, our model is 87% accurate.
@@ -313,6 +318,11 @@ To make a prediction on the text that was just entered, call the `predictSample(
 $prediction = $estimator->predictSample([$text]);
 
 echo "The sentiment is: $prediction" . PHP_EOL;
+```
+
+To run the prediction script enter the following on the command line.
+```sh
+php predict.php
 ```
 
 **Output**
