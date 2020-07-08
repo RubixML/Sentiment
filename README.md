@@ -57,7 +57,7 @@ Neural networks compute a non-linear continuous function and therefore require c
 
 First, we'll convert all characters to lowercase and remove any extra whitespace using [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html). Then, [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) is responsible for creating a continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
-The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents. In this way, we limit the amount of *noise* words that enter the training set.
+The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a particular document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents but no more than 5,000 documents. In this way, we limit the amount of *noise* words that enter the training set.
 
 Another common feature representation for words are their [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weight them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the text corpus. Specifically, higher weight is given to words that are more rare within the corpus.
 
@@ -84,7 +84,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 3, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 3, 5000, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([

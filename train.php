@@ -41,7 +41,7 @@ $dataset = new Labeled($samples, $labels);
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 3, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 3, 5000, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
