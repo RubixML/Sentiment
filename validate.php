@@ -37,6 +37,8 @@ $report = new AggregateReport([
 
 $results = $report->generate($predictions, $dataset->labels());
 
-file_put_contents('report.json', json_encode($results, JSON_PRETTY_PRINT));
+echo $results;
+
+$results->toJSON()->write('report.json');
 
 echo 'Report saved to report.json' . PHP_EOL;

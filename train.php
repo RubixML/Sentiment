@@ -19,7 +19,7 @@ use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
 use Rubix\ML\NeuralNet\Optimizers\AdaMax;
 use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\Other\Loggers\Screen;
-use League\Csv\Writer;
+use Rubix\ML\Datasets\Unlabeled;
 
 use function Rubix\ML\array_transpose;
 
@@ -41,7 +41,7 @@ $dataset = new Labeled($samples, $labels);
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 3, 5000, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 3, 10000, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
@@ -69,9 +69,9 @@ $estimator->train($dataset);
 $scores = $estimator->scores();
 $losses = $estimator->steps();
 
-$writer = Writer::createFromPath('progress.csv', 'w+');
-$writer->insertOne(['score', 'loss']);
-$writer->insertAll(array_transpose([$scores, $losses]));
+Unlabeled::build(array_transpose([$scores, $losses]))
+    ->toCSV(['scores', 'losses'])
+    ->write('progress.csv');
 
 echo 'Progress saved to progress.csv' . PHP_EOL;
 
