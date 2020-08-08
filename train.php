@@ -2,6 +2,7 @@
 
 include __DIR__ . '/vendor/autoload.php';
 
+use Rubix\ML\Other\Loggers\Screen;
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
@@ -18,14 +19,15 @@ use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
 use Rubix\ML\NeuralNet\Optimizers\AdaMax;
 use Rubix\ML\Persisters\Filesystem;
-use Rubix\ML\Other\Loggers\Screen;
 use Rubix\ML\Datasets\Unlabeled;
 
 use function Rubix\ML\array_transpose;
 
 ini_set('memory_limit', '-1');
 
-echo 'Loading data into memory ...' . PHP_EOL;
+$logger = new Screen();
+
+$logger->info('Loading data into memory');
 
 $samples = $labels = [];
 
@@ -60,9 +62,7 @@ $estimator = new PersistentModel(
     new Filesystem('sentiment.model', true)
 );
 
-$estimator->setLogger(new Screen('sentiment'));
-
-echo 'Training ...' . PHP_EOL;
+$estimator->setLogger($logger);
 
 $estimator->train($dataset);
 
@@ -73,7 +73,7 @@ Unlabeled::build(array_transpose([$scores, $losses]))
     ->toCSV(['scores', 'losses'])
     ->write('progress.csv');
 
-echo 'Progress saved to progress.csv' . PHP_EOL;
+$logger->info('Progress saved to progress.csv');
 
 if (strtolower(trim(readline('Save this model? (y|[n]): '))) === 'y') {
     $estimator->save();

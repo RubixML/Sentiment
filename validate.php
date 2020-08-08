@@ -2,6 +2,7 @@
 
 include __DIR__ . '/vendor/autoload.php';
 
+use Rubix\ML\Other\Loggers\Screen;
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
@@ -11,7 +12,9 @@ use Rubix\ML\CrossValidation\Reports\MulticlassBreakdown;
 
 ini_set('memory_limit', '-1');
 
-echo 'Loading data into memory ...' . PHP_EOL;
+$logger = new Screen();
+
+$logger->info('Loading data into memory');
 
 $samples = $labels = [];
 
@@ -26,7 +29,7 @@ $dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
 
 $estimator = PersistentModel::load(new Filesystem('sentiment.model'));
 
-echo 'Making predictions ...' . PHP_EOL;
+$logger->info('Making predictions');
 
 $predictions = $estimator->predict($dataset);
 
@@ -41,4 +44,4 @@ echo $results;
 
 $results->toJSON()->write('report.json');
 
-echo 'Report saved to report.json' . PHP_EOL;
+$logger->info('Report saved to report.json');
