@@ -57,7 +57,7 @@ Neural networks compute a non-linear continuous function and therefore require c
 
 First, we'll convert all characters to lowercase using [Text Normalizer](https://docs.rubixml.com/en/latest/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://docs.rubixml.com/en/latest/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/en/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/en/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
-The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 3 different documents but no more than 10,000 documents. In this way, we limit the amount of *noise* words that enter the training set.
+The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 2 different documents but no more than 10,000 documents. In this way, we limit the amount of *noise* words that enter the training set.
 
 Another common text feature representation are [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weigh them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the training corpus. Specifically, higher weight is given to words that are more rare.
 
@@ -84,7 +84,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 3, 10000, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 2, 10000, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
@@ -136,9 +136,9 @@ Unlabeled::build($table)->toCSV()->write('progress.csv');
 
 Here is an example of what the validation score and training loss looks like when they are plotted. The validation score should be getting better with each epoch as the loss decreases. You can generate your own plots by importing the `progress.csv` file into your plotting application.
 
-![F1 Score](https://raw.githubusercontent.com/RubixML/Sentiment/master/docs/images/validation-score.svg?sanitize=true)
+![F1 Score](https://raw.githubusercontent.com/RubixML/Sentiment/master/docs/images/validation-scores.png)
 
-![Cross Entropy Loss](https://raw.githubusercontent.com/RubixML/Sentiment/master/docs/images/training-loss.svg?sanitize=true)
+![Cross Entropy Loss](https://raw.githubusercontent.com/RubixML/Sentiment/master/docs/images/training-losses.png)
 
 ### Saving
 Finally, we save the model so we can load it later in our validation and prediction scripts.
@@ -366,4 +366,4 @@ See DATASET_README. For comments or questions regarding the dataset please conta
 >- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
 
 ## License
-The code is licensed [MIT](LICENSE.md) and the tutorial is licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+The code is licensed [MIT](LICENSE) and the tutorial is licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).

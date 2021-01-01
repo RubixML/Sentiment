@@ -3,7 +3,7 @@
     "type": "project",
     "description": "An example project using a multi layer feed forward neural network for text sentiment classification trained with 25,000 movie reviews from IMDB.",
     "homepage": "https://github.com/RubixML/Sentiment",
-    "license": "Apache-2.0",
+    "license": "MIT",
     "readme": "README.md",
     "keywords": [
         "bag of words", "batch norm", "classification", "dataset", "data science", "example project",
@@ -15,17 +15,13 @@
     "authors": [
         {
             "name": "Andrew DalPino",
-            "email": "me@andrewdalpino.com",
-            "homepage": "https://andrewdalpino.com",
+            "homepage": "https://github.com/andrewdalpino",
             "role": "Lead Engineer"
         }
     ],
     "require": {
         "php": ">=7.2",
-        "rubix/ml": "^0.1.0"
-    },
-    "suggest": {
-        "ext-tensor": "For faster training and inference"
+        "rubix/ml": "^0.3.0"
     },
     "scripts": {
         "predict": "@php predict.php",
