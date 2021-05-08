@@ -7,7 +7,7 @@ use Rubix\ML\Persisters\Filesystem;
 
 ini_set('memory_limit', '-1');
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
+$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
 
 while (empty($text)) $text = readline("Enter some text to analyze:\n");
 

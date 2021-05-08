@@ -2,13 +2,13 @@
 
 include __DIR__ . '/vendor/autoload.php';
 
-use Rubix\ML\Other\Loggers\Screen;
+use Rubix\ML\Loggers\Screen;
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
-use Rubix\ML\Other\Tokenizers\NGram;
+use Rubix\ML\Tokenizers\NGram;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Classifiers\MultilayerPerceptron;
@@ -19,9 +19,7 @@ use Rubix\ML\NeuralNet\Layers\BatchNorm;
 use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
 use Rubix\ML\NeuralNet\Optimizers\AdaMax;
 use Rubix\ML\Persisters\Filesystem;
-use Rubix\ML\Datasets\Unlabeled;
-
-use function Rubix\ML\array_transpose;
+use Rubix\ML\Extractors\CSV;
 
 ini_set('memory_limit', '-1');
 
@@ -43,7 +41,7 @@ $dataset = new Labeled($samples, $labels);
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 2, 10000, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 0.00008, 0.4, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
@@ -59,19 +57,16 @@ $estimator = new PersistentModel(
         new Dense(50),
         new PReLU(),
     ], 256, new AdaMax(0.0001))),
-    new Filesystem('sentiment.model', true)
+    new Filesystem('sentiment.rbx', true)
 );
 
 $estimator->setLogger($logger);
 
 $estimator->train($dataset);
 
-$scores = $estimator->scores();
-$losses = $estimator->steps();
+$extractor = new CSV('progress.csv', true);
 
-Unlabeled::build(array_transpose([$scores, $losses]))
-    ->toCSV(['scores', 'losses'])
-    ->write('progress.csv');
+$extractor->export($estimator->steps());
 
 $logger->info('Progress saved to progress.csv');
 

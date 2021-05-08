@@ -84,7 +84,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 2, 10000, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 0.00008, 0.4, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
@@ -100,7 +100,7 @@ $estimator = new PersistentModel(
         new Dense(50),
         new PReLU(),
     ], 256, new AdaMax(0.0001))),
-    new Filesystem('sentiment.model', true)
+    new Filesystem('sentiment.rbx', true)
 );
 ```
 
@@ -116,22 +116,14 @@ $estimator->train($dataset);
 ```
 
 ### Validation Score and Loss
-During training, the learner will record the validation score and the training loss at each iteration or *epoch*. The validation score is calculated using the default [F Beta](https://docs.rubixml.com/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://docs.rubixml.com/latest/neural-network/cost-functions/cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the additional `scores()` and `steps()` methods respectively.
+During training, the learner will record the validation score and the training loss at each iteration or *epoch*. The validation score is calculated using the default [F Beta](https://docs.rubixml.com/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://docs.rubixml.com/latest/neural-network/cost-functions/cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the additional `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://docs.rubixml.com/latest/extractors/csv.html).
 
 ```php
-$scores = $estimator->scores();
+use Rubix\ML\Extractors\CSV;
 
-$losses = $estimator->steps();
-```
-Next, we'll use an [Unlabeled](https://docs.rubixml.com/latest/datasets/unlabeled.html) dataset object to temporarily store and convert the scores and losses into CSV format so that we can import the data into our favorite plotting application such as [Plotly](https://plotly.com) or [Excel](https://www.microsoft.com/en-us/microsoft-365/excel). The global `array_transpose()` function takes a 2-dimensional array and changes the rows to columns and vice versa. It is necessary to call this function in order to get the samples into the correct *shape* for the dataset object.
+$extractor = new CSV('progress.csv', true);
 
-```php
-use Rubix\ML\Datasets\Unlabeled;
-use function Rubix\ML\array_transpose;
-
-$table = array_transpose([$scores, $losses]);
-
-Unlabeled::build($table)->toCSV()->write('progress.csv');
+$extractor->export($estimator->steps());
 ```
 
 Here is an example of what the validation score and training loss looks like when they are plotted. The validation score should be getting better with each epoch as the loss decreases. You can generate your own plots by importing the `progress.csv` file into your plotting application.
@@ -184,7 +176,7 @@ Next, we'll use the Persistent Model wrapper to load the network we trained earl
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
+$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
 ```
 
 Now we can use the estimator to make predictions on the testing set. The `predict()` method on t he estimator takes a dataset as input and returns an array of predictions.
@@ -214,10 +206,10 @@ $results = $report->generate($predictions, $dataset->labels());
 echo $results;
 ```
 
-We'll also save a copy of the report to a JSON file.
+We'll also save a copy of the report to a JSON file using the Filesystem persister.
 
 ```php
-$results->toJSON()->write('report.json');
+$results->toJSON()->saveTo(new Filesystem('report.json'));
 ```
 
 Now we can execute the validation script from the command line.
@@ -327,7 +319,7 @@ First, load the model from storage using the static `load()` method on the Persi
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.model'));
+$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
 ```
 
 Next, we'll use the built-in PHP function `readline()` to prompt the user to enter some text that we'll store in a variable.

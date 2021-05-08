@@ -2,7 +2,7 @@
 composer.lock
 progress.csv
 report.json
+*.rbx
+*.old
 .vscode
 .vs
-*.model
-*.old

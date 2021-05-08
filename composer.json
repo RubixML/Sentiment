@@ -20,8 +20,8 @@
         }
     ],
     "require": {
-        "php": ">=7.2",
-        "rubix/ml": "^0.3.0"
+        "php": ">=7.4",
+        "rubix/ml": "^1.0"
     },
     "scripts": {
         "predict": "@php predict.php",
