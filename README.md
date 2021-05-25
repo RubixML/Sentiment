@@ -13,11 +13,11 @@ $ composer create-project rubix/sentiment
 > **Note:** Installation may take longer than usual because of the large dataset.
 
 ## Requirements
-- [PHP](https://php.net) 7.2 or above
+- [PHP](https://php.net) 7.4 or above
+- 16G of system memory or more
 
 #### Recommended
 - [Tensor extension](https://github.com/RubixML/Tensor) for faster training and inference
-- 12G of system memory or more
 
 ## Tutorial
 
