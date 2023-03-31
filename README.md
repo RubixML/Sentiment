@@ -84,7 +84,7 @@ use Rubix\ML\Persisters\Filesystem;
 $estimator = new PersistentModel(
     new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 0.00008, 0.4, new NGram(1, 2)),
+        new WordCountVectorizer(10000, 2, 0.4, new NGram(1, 2)),
         new TfIdfTransformer(),
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron([
