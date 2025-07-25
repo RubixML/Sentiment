@@ -44,7 +44,7 @@ foreach (['positive', 'negative'] as $label) {
 }
 ```
 
-Now, we can instantiate a new [Labeled](https://docs.rubixml.com/latest/datasets/labeled.html) dataset object with the imported samples and labels.
+Now, we can instantiate a new [Labeled](https://rubixml.github.io/ML/latest/datasets/labeled.html) dataset object with the imported samples and labels.
 
 ```php
 use Rubix\ML\Datasets\Labeled;
@@ -53,16 +53,16 @@ $dataset = new Labeled($samples, $labels);
 ```
 
 ### Dataset Preparation
-Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://docs.rubixml.com/latest/pipeline.html).
+Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://rubixml.github.io/ML/latest/pipeline.html).
 
-First, we'll convert all characters to lowercase using [Text Normalizer](https://docs.rubixml.com/latest/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://docs.rubixml.com/latest/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://docs.rubixml.com/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://docs.rubixml.com/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
+First, we'll convert all characters to lowercase using [Text Normalizer](https://rubixml.github.io/ML/latest/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://rubixml.github.io/ML/latest/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://rubixml.github.io/ML/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://rubixml.github.io/ML/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
 The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 2 different documents but no more than 10,000 documents. In this way, we limit the amount of *noise* words that enter the training set.
 
 Another common text feature representation are [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weigh them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the training corpus. Specifically, higher weight is given to words that are more rare.
 
 ### Instantiating the Learner
-The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://docs.rubixml.com/latest/classifiers/multilayer-perceptron.html) classifier. The network uses 5 hidden layers consisting of a [Dense](https://docs.rubixml.com/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://docs.rubixml.com/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://docs.rubixml.com/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://docs.rubixml.com/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://docs.rubixml.com/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/latest/classifiers/multilayer-perceptron.html) classifier. The network uses 5 hidden layers consisting of a [Dense](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://rubixml.github.io/ML/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
 use Rubix\ML\PersistentModel;
@@ -104,9 +104,9 @@ $estimator = new PersistentModel(
 );
 ```
 
-We'll choose a batch size of 256 samples and perform network parameter updates using the [AdaMax](https://docs.rubixml.com/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://docs.rubixml.com/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
+We'll choose a batch size of 256 samples and perform network parameter updates using the [AdaMax](https://rubixml.github.io/ML/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://rubixml.github.io/ML/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
 
-Lastly, we'll wrap the entire estimator in a [Persistent Model](https://docs.rubixml.com/latest/persistent-model.html) wrapper so we can save and load it later in our other scripts. The [Filesystem](https://docs.rubixml.com/latest/persisters/filesystem.html) persister tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
+Lastly, we'll wrap the entire estimator in a [Persistent Model](https://rubixml.github.io/ML/latest/persistent-model.html) wrapper so we can save and load it later in our other scripts. The [Filesystem](https://rubixml.github.io/ML/latest/persisters/filesystem.html) persister tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
 
 ### Training
 Now, you can call the `train()` method on the learner with the training dataset we instantiated earlier as an argument to kick off the training process.
@@ -116,7 +116,7 @@ $estimator->train($dataset);
 ```
 
 ### Validation Score and Loss
-During training, the learner will record the validation score and the training loss at each iteration or *epoch*. The validation score is calculated using the default [F Beta](https://docs.rubixml.com/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://docs.rubixml.com/latest/neural-network/cost-functions/cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the additional `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://docs.rubixml.com/latest/extractors/csv.html).
+During training, the learner will record the validation score and the training loss at each iteration or *epoch*. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://rubixml.github.io/ML/latest/neural-network/cost-functions/cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the additional `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/latest/extractors/csv.html).
 
 ```php
 use Rubix\ML\Extractors\CSV;
@@ -162,7 +162,7 @@ foreach (['positive', 'negative'] as $label) {
 }
 ```
 
-Then, load the samples and labels into a [Labeled](https://docs.rubixml.com/latest/datasets/labeled.html) dataset object using the `build()` method, randomize the order, and take the first 10,000 rows and put them in a new dataset object.
+Then, load the samples and labels into a [Labeled](https://rubixml.github.io/ML/latest/datasets/labeled.html) dataset object using the `build()` method, randomize the order, and take the first 10,000 rows and put them in a new dataset object.
 
 ```php
 use Rubix\ML\Datasets\Labeled;
@@ -185,7 +185,7 @@ Now we can use the estimator to make predictions on the testing set. The `predic
 $predictions = $estimator->predict($dataset);
 ```
 
-The cross-validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://docs.rubixml.com/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://docs.rubixml.com/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://docs.rubixml.com/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for by binning the predictions in a 2 x 2 matrix.
+The cross-validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://rubixml.github.io/ML/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://rubixml.github.io/ML/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://rubixml.github.io/ML/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for by binning the predictions in a 2 x 2 matrix.
 
 ```php
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
