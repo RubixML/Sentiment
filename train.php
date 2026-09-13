@@ -7,6 +7,7 @@ use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
 use Rubix\ML\Transformers\TextNormalizer;
+use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Tokenizers\NGram;
 use Rubix\ML\Transformers\TfIdfTransformer;
@@ -14,10 +15,11 @@ use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Classifiers\MultilayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\Activation;
-use Rubix\ML\NeuralNet\Layers\PReLU;
+use Rubix\ML\NeuralNet\Layers\Swish;
 use Rubix\ML\NeuralNet\Layers\BatchNorm;
-use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
+use Rubix\ML\NeuralNet\ActivationFunctions\SiLU;
 use Rubix\ML\NeuralNet\Optimizers\AdaMax;
+use Rubix\ML\NeuralNet\Optimizers\Schedulers\Constant;
 use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\Extractors\CSV;
 
@@ -39,25 +41,38 @@ foreach (['positive', 'negative'] as $label) {
 $dataset = new Labeled($samples, $labels);
 
 $estimator = new PersistentModel(
-    new Pipeline([
+    base: new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 2, 0.4, new NGram(1, 2)),
-        new TfIdfTransformer(),
+        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
+        new FloatTypeConverter(),
+        new TfIdfTransformer(sublinear: true),
         new ZScaleStandardizer(),
-    ], new MultilayerPerceptron([
-        new Dense(100),
-        new Activation(new LeakyReLU()),
-        new Dense(100),
-        new Activation(new LeakyReLU()),
-        new Dense(100, 0.0, false),
-        new BatchNorm(),
-        new Activation(new LeakyReLU()),
-        new Dense(50),
-        new PReLU(),
-        new Dense(50),
-        new PReLU(),
-    ], 256, new AdaMax(0.0001))),
-    new Filesystem('sentiment.rbx', true)
+    ], new MultilayerPerceptron(
+        hiddenLayers: [
+            new Dense(128),
+            new Activation(new SiLU()),
+            new Dense(128),
+            new Activation(new SiLU()),
+            new Dense(128, 0.0, false),
+            new BatchNorm(),
+            new Activation(new SiLU()),
+            new Dense(64),
+            new Swish(),
+            new Dense(64),
+            new Swish(),
+            new Dense(2),
+        ], 
+        batchSize: 32,
+        gradientAccumulationSteps: 4,
+        optimizer: new AdaMax(new Constant(0.0001)),
+        maxGradientNorm: 1.0,
+        epochs: 100,
+        minChange: 1e-5,
+        evalInterval: 1,
+        window: 10,
+        holdOut: 0.1
+    )),
+    persister: new Filesystem('sentiment.rbx', true)
 );
 
 $estimator->setLogger($logger);

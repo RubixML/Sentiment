@@ -29,6 +29,8 @@ $dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
 
 $estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
 
+$estimator->cleanup();
+
 $logger->info('Making predictions');
 
 $predictions = $estimator->predict($dataset);
