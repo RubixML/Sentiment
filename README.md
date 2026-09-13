@@ -1,10 +1,9 @@
 # Rubix ML - Text Sentiment Analyzer
+
 This is a multilayer feed forward neural network for text sentiment classification trained on 25,000 movie reviews from the [IMDB](https://imdb.com) movie reviews website. The dataset also provides another 25,000 samples which we use after training to test the model. This example project demonstrates text feature representation and deep learning in Rubix ML using a neural network classifier called a Multilayer Perceptron.
 
-- **Difficulty:** Hard
-- **Training time:** Hours
-
 ## Installation
+
 Clone the project locally using [Composer](https://getcomposer.org):
 ```sh
 $ composer create-project rubix/sentiment
@@ -13,22 +12,26 @@ $ composer create-project rubix/sentiment
 > **Note:** Installation may take longer than usual because of the large dataset.
 
 ## Requirements
-- [PHP](https://php.net) 7.4 or above
+
+- [PHP](https://php.net) 8.3 or above
 - 16G of system memory or more
 
-#### Recommended
+### Recommended
+
 - [Tensor extension](https://github.com/RubixML/Tensor) for faster training and inference
 
 ## Tutorial
 
 ### Introduction
+
 Our objective is to predict the sentiment (either *positive* or *negative*) of a blob of English text using machine learning. We sometimes refer to this type of ML as [Natural Language Processing](https://en.wikipedia.org/wiki/Natural_language_processing) (NLP) because it involves machines making sense of language. The dataset provided to us contains 25,000 training and 25,000 testing samples each consisting of a blob of English text reviewing a movie on the IMDB website. The samples have been labeled positive or negative based on the score (1 - 10) the reviewer gave to the movie. From there, we'll use the IMDB dataset to train a multilayer neural network to predict the sentiment of any English text we show it.
 
-**Example**
+#### Example
 
 > "Story of a man who has unnatural feelings for a pig. Starts out with a opening scene that is a terrific example of absurd comedy. A formal orchestra audience is turned into an insane, violent mob by the crazy chantings of it's singers. Unfortunately it stays absurd the WHOLE time with no general narrative eventually making it just too off putting. ..."
 
 ### Extracting the Data
+
 The samples are given to us in individual `.txt` files and organized by label into `positive` and `negative` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add the corresponding *positive* and *negative* labels in their own array.
 
 > **Note**: The source code for this example can be found in the [train.php](https://github.com/RubixML/Sentiment/blob/master/train.php) file in the project root.
@@ -44,7 +47,7 @@ foreach (['positive', 'negative'] as $label) {
 }
 ```
 
-Now, we can instantiate a new [Labeled](https://rubixml.github.io/ML/latest/datasets/labeled.html) dataset object with the imported samples and labels.
+Now, we can instantiate a new [Labeled](https://rubixml.github.io/ML/3.0/datasets/labeled.html) dataset object with the imported samples and labels.
 
 ```php
 use Rubix\ML\Datasets\Labeled;
@@ -53,62 +56,90 @@ $dataset = new Labeled($samples, $labels);
 ```
 
 ### Dataset Preparation
-Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://rubixml.github.io/ML/latest/pipeline.html).
 
-First, we'll convert all characters to lowercase using [Text Normalizer](https://rubixml.github.io/ML/latest/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://rubixml.github.io/ML/latest/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text and [TF-IDF Transformer](https://rubixml.github.io/ML/latest/transformers/tf-idf-transformer.html) applies a weighting scheme to those counts. Finally, [Z Scale Standardizer](https://rubixml.github.io/ML/latest/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
+Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://rubixml.github.io/ML/3.0/pipeline.html).
 
-The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,000 of the most frequent words that satisfy the criteria of appearing in at least 2 different documents but no more than 10,000 documents. In this way, we limit the amount of *noise* words that enter the training set.
+First, we'll convert all characters to lowercase using [Text Normalizer](https://rubixml.github.io/ML/3.0/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://rubixml.github.io/ML/3.0/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text, [Float Type Converter](https://rubixml.github.io/ML/3.0/transformers/float-type-converter.html) casts those counts to floats, and [TF-IDF Transformer](https://rubixml.github.io/ML/3.0/transformers/tf-idf-transformer.html) applies a sublinear weighting scheme to those counts. Finally, [Z Scale Standardizer](https://rubixml.github.io/ML/3.0/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
-Another common text feature representation are [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from Word Count Vectorizer and weigh them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the training corpus. Specifically, higher weight is given to words that are more rare.
+The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,240 of the most frequent words that satisfy the criteria of appearing in at least 2 different documents but no more than a certain proportion of documents. In this way, we limit the amount of *noise* words that enter the training set.
+
+Another common text feature representation are [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf) values which take the term frequencies (TF) from the Word Count Vectorizer and weigh them by their inverse document frequencies (IDF). IDFs can be interpreted as the word's *importance* within the training corpus. Specifically, higher weight is given to words that are more rare. We use the sublinear TF-IDF variant which applies a logarithmic dampening to the term frequencies.
 
 ### Instantiating the Learner
-The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/latest/classifiers/multilayer-perceptron.html) classifier. The network uses 5 hidden layers consisting of a [Dense](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/dense.html) layer of neurons followed by a non-linear [Activation](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/activation.html) layer and an optional [Batch Norm](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/batch-norm.html) layer for normalizing the activations. The first 3 hidden layers use a [Leaky ReLU](https://rubixml.github.io/ML/latest/neural-network/activation-functions/leaky-relu.html) activation function while the last 2 utilize a trainable form of the Leaky ReLU called [PReLU](https://rubixml.github.io/ML/latest/neural-network/hidden-layers/prelu.html) for *Parametric* Rectified Linear Unit. The benefit that *leakage* provides over standard rectification is that it allows neurons to learn even if they did not activate by allowing a small gradient to pass through during backpropagation. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+
+The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/3.0/classifiers/multilayer-perceptron.html) classifier. The network uses two hidden blocks. The first block consists of three [Dense](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/dense.html) layers of 128 neurons each with a [SiLU](https://rubixml.github.io/ML/3.0/neural-network/activation-functions/silu.html) [Activation](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/activation.html) layer after each one (the middle layer has no bias and is followed by a [Batch Norm](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/batch-norm.html) layer instead). The second block consists of two 64-neuron Dense layers each followed by a [Swish](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/swish.html) activation layer. The network ends with a 2-unit Dense output layer with one neuron per class. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Pipeline;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
+use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
-use Rubix\ML\Other\Tokenizers\NGram;
+use Rubix\ML\Tokenizers\NGram;
 use Rubix\ML\Classifiers\MultilayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
-use Rubix\ML\NeuralNet\Layers\PReLU;
 use Rubix\ML\NeuralNet\Layers\Activation;
+use Rubix\ML\NeuralNet\Layers\Swish;
 use Rubix\ML\NeuralNet\Layers\BatchNorm;
-use Rubix\ML\NeuralNet\ActivationFunctions\LeakyReLU;
+use Rubix\ML\NeuralNet\ActivationFunctions\SiLU;
 use Rubix\ML\NeuralNet\Optimizers\AdaMax;
+use Rubix\ML\NeuralNet\Optimizers\Schedulers\Constant;
 use Rubix\ML\Persisters\Filesystem;
 
 $estimator = new PersistentModel(
-    new Pipeline([
+    base: new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10000, 2, 0.4, new NGram(1, 2)),
-        new TfIdfTransformer(),
+        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
+        new FloatTypeConverter(),
+        new TfIdfTransformer(sublinear: true),
         new ZScaleStandardizer(),
-    ], new MultilayerPerceptron([
-        new Dense(100),
-        new Activation(new LeakyReLU()),
-        new Dense(100),
-        new Activation(new LeakyReLU()),
-        new Dense(100, 0.0, false),
-        new BatchNorm(),
-        new Activation(new LeakyReLU()),
-        new Dense(50),
-        new PReLU(),
-        new Dense(50),
-        new PReLU(),
-    ], 256, new AdaMax(0.0001))),
-    new Filesystem('sentiment.rbx', true)
+    ], new MultilayerPerceptron(
+        hiddenLayers: [
+            new Dense(128),
+            new Activation(new SiLU()),
+            new Dense(128),
+            new Activation(new SiLU()),
+            new Dense(128, 0.0, false),
+            new BatchNorm(),
+            new Activation(new SiLU()),
+            new Dense(64),
+            new Swish(),
+            new Dense(64),
+            new Swish(),
+            new Dense(2),
+        ],
+        batchSize: 32,
+        gradientAccumulationSteps: 4,
+        optimizer: new AdaMax(new Constant(0.0001)),
+        maxGradientNorm: 1.0,
+        epochs: 100,
+        minChange: 1e-5,
+        evalInterval: 1,
+        window: 10,
+        holdOut: 0.1,
+    )),
+    persister: new Filesystem('sentiment.rbx', true)
 );
 ```
 
-We'll choose a batch size of 256 samples and perform network parameter updates using the [AdaMax](https://rubixml.github.io/ML/latest/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://rubixml.github.io/ML/latest/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. When setting the learning rate of an optimizer, the important thing to note is that a learning rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all. A global learning rate of 0.0001 seems to work pretty well for this problem.
+We'll choose a micro-batch size of 32 samples and perform network parameter updates every 4 batches (an effective batch size of 128) using the [AdaMax](https://rubixml.github.io/ML/3.0/neural-network/optimizers/adamax.html) optimizer. AdaMax is based on the [Adam](https://rubixml.github.io/ML/3.0/neural-network/optimizers/adam.html) algorithm but tends to handle sparse updates better. We hold the learning rate constant at 0.0001 using the [Constant](https://rubixml.github.io/ML/3.0/neural-network/schedulers/constant.html) scheduler. When setting the learning rate of an optimizer, the important thing to note is that a rate that is too low will cause the network to learn slowly while a rate that is too high will prevent the network from learning at all.
 
-Lastly, we'll wrap the entire estimator in a [Persistent Model](https://rubixml.github.io/ML/latest/persistent-model.html) wrapper so we can save and load it later in our other scripts. The [Filesystem](https://rubixml.github.io/ML/latest/persisters/filesystem.html) persister tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
+Lastly, we'll wrap the entire estimator in a [Persistent Model](https://rubixml.github.io/ML/3.0/persistent-model.html) wrapper so we can save and load it later in our other scripts. The [Filesystem](https://rubixml.github.io/ML/3.0/persisters/filesystem.html) persister tells the wrapper to save and load the serialized model data from a path on disk. Setting the history parameter to true tells the persister to keep a history of past saves.
 
 ### Training
+
+Before we train, we'll set a [Screen](https://rubixml.github.io/ML/3.0/loggers/screen.html) logger on the estimator so that status messages are printed to the console as training progresses.
+
+```php
+use Rubix\ML\Loggers\Screen;
+
+$logger = new Screen();
+
+$estimator->setLogger($logger);
+```
+
 Now, you can call the `train()` method on the learner with the training dataset we instantiated earlier as an argument to kick off the training process.
 
 ```php
@@ -116,7 +147,10 @@ $estimator->train($dataset);
 ```
 
 ### Validation Score and Loss
-During training, the learner will record the validation score and the training loss at each iteration or *epoch*. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/latest/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Cross Entropy](https://rubixml.github.io/ML/latest/neural-network/cost-functions/cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the additional `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/latest/extractors/csv.html).
+
+During training, the learner will record the validation score and the training loss for each epoch where they are evaluated. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/3.0/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Multiclass Cross Entropy](https://rubixml.github.io/ML/3.0/neural-network/cost-functions/multiclass-cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/3.0/extractors/csv.html).
+
+> **Note**: The `evalInterval`, `window`, and `minChange` parameters on the network control how often scores are evaluated and when training is early-stopped if the validation score stops improving.
 
 ```php
 use Rubix\ML\Extractors\CSV;
@@ -133,14 +167,18 @@ Here is an example of what the validation score and training loss looks like whe
 ![Cross Entropy Loss](https://raw.githubusercontent.com/RubixML/Sentiment/master/docs/images/training-losses.png)
 
 ### Saving
-Finally, we save the model so we can load it later in our validation and prediction scripts.
+
+Finally, we are prompted to save the model so we can load it later in our validation and prediction scripts. If you answer *yes*, the `save()` method serializes the model to disk.
 
 ```php
-$estimator->save();
+if (strtolower(trim(readline('Save this model? (y|[n]): '))) === 'y') {
+    $estimator->save();
+}
 ```
 
 Now you're ready to run the training script from the command line.
-```php
+
+```sh
 $ php train.php
 ```
 
@@ -162,7 +200,7 @@ foreach (['positive', 'negative'] as $label) {
 }
 ```
 
-Then, load the samples and labels into a [Labeled](https://rubixml.github.io/ML/latest/datasets/labeled.html) dataset object using the `build()` method, randomize the order, and take the first 10,000 rows and put them in a new dataset object.
+Then, load the samples and labels into a [Labeled](https://rubixml.github.io/ML/3.0/datasets/labeled.html) dataset object using the `build()` method, randomize the order, and take the first 10,000 rows and put them in a new dataset object.
 
 ```php
 use Rubix\ML\Datasets\Labeled;
@@ -177,15 +215,17 @@ use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 
 $estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
+
+$estimator->cleanup();
 ```
 
-Now we can use the estimator to make predictions on the testing set. The `predict()` method on t he estimator takes a dataset as input and returns an array of predictions.
+Now we can use the estimator to make predictions on the testing set. The `predict()` method on the estimator takes a dataset as input and returns an array of predictions.
 
 ```php
 $predictions = $estimator->predict($dataset);
 ```
 
-The cross-validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://rubixml.github.io/ML/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://rubixml.github.io/ML/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://rubixml.github.io/ML/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for by binning the predictions in a 2 x 2 matrix.
+The cross-validation report we'll generate is actually a combination of two reports - [Multiclass Breakdown](https://rubixml.github.io/ML/3.0/cross-validation/reports/multiclass-breakdown.html) and [Confusion Matrix](https://rubixml.github.io/ML/3.0/cross-validation/reports/confusion-matrix.html). We wrap each report in an [Aggregate Report](https://rubixml.github.io/ML/3.0/cross-validation/reports/aggregate-report.html) to generate both reports at once. The Multiclass Breakdown will give us detailed information about the performance of the estimator at the class level. The Confusion Matrix will give us an idea as to what labels the estimator is *confusing* one another for by binning the predictions in a 2 x 2 matrix.
 
 ```php
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
@@ -213,6 +253,7 @@ $results->toJSON()->saveTo(new Filesystem('report.json'));
 ```
 
 Now we can execute the validation script from the command line.
+
 ```sh
 $ php validate.php
 ```
@@ -309,6 +350,7 @@ Take a look at the report and see how well the model performs. According to the 
 Nice job! Now we're ready to make some predictions on new data.
 
 ### Predicting Single Samples
+
 Now that we're confident with our model, let's build a simple script that takes some text input from the terminal and outputs a sentiment prediction using the estimator we've just trained.
 
 > **Note**: The source code for this example can be found in the [predict.php](https://github.com/RubixML/Sentiment/blob/master/predict.php) file in the project root.
@@ -328,20 +370,27 @@ Next, we'll use the built-in PHP function `readline()` to prompt the user to ent
 while (empty($text)) $text = readline("Enter some text to analyze:\n");
 ```
 
-To make a prediction on the text that was just entered, call the `predictSample()` method on the learner with an array containing the values of the features in the same order as the training set. Since we only have one input feature in this case, the ordering is easy!
+To make a prediction on the text that was just entered, we wrap it in an [Unlabeled](https://rubixml.github.io/ML/3.0/datasets/unlabeled.html) dataset, call the `predict()` method on the estimator, and take the first prediction returned. Since we only have one input feature in this case, the ordering is easy!
 
 ```php
-$prediction = $estimator->predictSample([$text]);
+use Rubix\ML\Datasets\Unlabeled;
+
+$dataset = new Unlabeled([
+    [$text],
+]);
+
+$prediction = current($estimator->predict($dataset));
 
 echo "The sentiment is: $prediction" . PHP_EOL;
 ```
 
 To run the prediction script enter the following on the command line.
+
 ```sh
 php predict.php
 ```
 
-**Output**
+Output
 
 ```sh
 Enter some text to analyze: Rubix ML is really great
@@ -349,13 +398,17 @@ The sentiment is: positive
 ```
 
 ### Next Steps
+
 Congratulations on completing the tutorial on text sentiment classification in Rubix ML using a Multilayer Perceptron. We recommend playing around with the network architecture and hyper-parameters on your own to get a feel for how they effect the model. Generally, adding more neurons and layers will improve performance but training may take longer as a result. In addition, a larger vocabulary size may also improve the accuracy at the cost adding additional computation during training and inference.
 
 ## Original Dataset
+
 See DATASET_README. For comments or questions regarding the dataset please contact [Andrew Maas](http://www.andrew-maas.net).
 
 ### References
->- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
+
+- Andrew L. Maas, Raymond E. Daly, Peter T. Pham, Dan Huang, Andrew Y. Ng, and Christopher Potts. (2011). Learning Word Vectors for Sentiment Analysis. The 49th Annual Meeting of the Association for Computational Linguistics (ACL 2011).
 
 ## License
+
 The code is licensed [MIT](LICENSE) and the tutorial is licensed [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
