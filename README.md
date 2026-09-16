@@ -5,6 +5,7 @@ This is a multilayer feed forward neural network for text sentiment classificati
 ## Installation
 
 Clone the project locally using [Composer](https://getcomposer.org):
+
 ```sh
 $ composer create-project rubix/sentiment
 ```
