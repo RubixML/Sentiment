@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": ">=8.3",
-        "rubix/ml": "dev-master"
+        "rubix/ml": "3.0.0-rc4"
     },
     "scripts": {
         "predict": "@php predict.php",

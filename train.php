@@ -49,16 +49,17 @@ $estimator = new PersistentModel(
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron(
         hiddenLayers: [
-            new Dense(128),
+            new Dense(256),
             new Activation(new SiLU()),
-            new Dense(128),
-            new Activation(new SiLU()),
-            new Dense(128, 0.0, false),
+            new Dense(256, bias: false),
             new BatchNorm(),
             new Activation(new SiLU()),
-            new Dense(64),
+            new Dense(256),
+            new Activation(new SiLU()),
+            new Dense(128, bias: false),
+            new BatchNorm(),
             new Swish(),
-            new Dense(64),
+            new Dense(128),
             new Swish(),
             new Dense(2),
         ], 
@@ -81,7 +82,7 @@ $estimator->train($dataset);
 
 $extractor = new CSV('progress.csv', true);
 
-$extractor->export($estimator->steps());
+$extractor->export($estimator->progress());
 
 $logger->info('Progress saved to progress.csv');
 

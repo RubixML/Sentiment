@@ -68,7 +68,7 @@ Another common text feature representation are [TF-IDF](https://en.wikipedia.org
 
 ### Instantiating the Learner
 
-The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/3.0/classifiers/multilayer-perceptron.html) classifier. The network uses two hidden blocks. The first block consists of three [Dense](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/dense.html) layers of 128 neurons each with a [SiLU](https://rubixml.github.io/ML/3.0/neural-network/activation-functions/silu.html) [Activation](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/activation.html) layer after each one (the middle layer has no bias and is followed by a [Batch Norm](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/batch-norm.html) layer instead). The second block consists of two 64-neuron Dense layers each followed by a [Swish](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/swish.html) activation layer. The network ends with a 2-unit Dense output layer with one neuron per class. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/3.0/classifiers/multilayer-perceptron.html) classifier. The network uses two hidden blocks. The first block consists of three [Dense](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/dense.html) layers of 256 neurons each with a [SiLU](https://rubixml.github.io/ML/3.0/neural-network/activation-functions/silu.html) [Activation](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/activation.html) layer after each one (the middle layer has no bias and is followed by a [Batch Norm](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/batch-norm.html) layer). The second block consists of two 128-neuron Dense layers, the first of which has no bias and is followed by a Batch Norm layer, each followed by a [Swish](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/swish.html) activation layer. The network ends with a 2-unit Dense output layer with one neuron per class. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
 use Rubix\ML\PersistentModel;
@@ -98,16 +98,17 @@ $estimator = new PersistentModel(
         new ZScaleStandardizer(),
     ], new MultilayerPerceptron(
         hiddenLayers: [
-            new Dense(128),
+            new Dense(256),
             new Activation(new SiLU()),
-            new Dense(128),
-            new Activation(new SiLU()),
-            new Dense(128, 0.0, false),
+            new Dense(256, bias: false),
             new BatchNorm(),
             new Activation(new SiLU()),
-            new Dense(64),
+            new Dense(256),
+            new Activation(new SiLU()),
+            new Dense(128, bias: false),
+            new BatchNorm(),
             new Swish(),
-            new Dense(64),
+            new Dense(128),
             new Swish(),
             new Dense(2),
         ],
@@ -149,7 +150,7 @@ $estimator->train($dataset);
 
 ### Validation Score and Loss
 
-During training, the learner will record the validation score and the training loss for each epoch where they are evaluated. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/3.0/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Multiclass Cross Entropy](https://rubixml.github.io/ML/3.0/neural-network/cost-functions/multiclass-cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the `steps()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/3.0/extractors/csv.html).
+During training, the learner will record the validation score and the training loss for each epoch where they are evaluated. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/3.0/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Multiclass Cross Entropy](https://rubixml.github.io/ML/3.0/neural-network/cost-functions/multiclass-cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the `progress()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/3.0/extractors/csv.html).
 
 > **Note**: The `evalInterval`, `window`, and `minChange` parameters on the network control how often scores are evaluated and when training is early-stopped if the validation score stops improving.
 
@@ -158,7 +159,7 @@ use Rubix\ML\Extractors\CSV;
 
 $extractor = new CSV('progress.csv', true);
 
-$extractor->export($estimator->steps());
+$extractor->export($estimator->progress());
 ```
 
 Here is an example of what the validation score and training loss looks like when they are plotted. The validation score should be getting better with each epoch as the loss decreases. You can generate your own plots by importing the `progress.csv` file into your plotting application.
