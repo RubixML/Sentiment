@@ -15,7 +15,7 @@ $ composer create-project rubix/sentiment
 ## Requirements
 
 - [PHP](https://php.net) 8.3 or above
-- 16G of system memory or more
+- 16G of system memory or more (the training script raises PHP's `memory_limit` to unlimited at runtime, so plenty of physical memory is required)
 
 ### Recommended
 
@@ -33,27 +33,29 @@ Our objective is to predict the sentiment (either *positive* or *negative*) of a
 
 ### Extracting the Data
 
-The samples are given to us in individual `.txt` files and organized by label into `positive` and `negative` folders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array. We'll also add the corresponding *positive* and *negative* labels in their own array.
+The samples are given to us in individual `.txt` files and organized by split and label into `train` and `test` folders, each of which contains `positive` and `negative` subfolders. We'll use PHP's built in `glob()` function to loop through all the text files in each folder and add their contents to a samples array along with the corresponding *positive* and *negative* labels. We'll do this for both the training and testing splits, building a [Labeled](https://rubixml.github.io/ML/3.0/datasets/labeled.html) dataset object for each.
 
 > **Note**: The source code for this example can be found in the [train.php](https://github.com/RubixML/Sentiment/blob/master/train.php) file in the project root.
 
 ```php
-$samples = $labels = [];
-
-foreach (['positive', 'negative'] as $label) {
-    foreach (glob("train/$label/*.txt") as $file) {
-        $samples[] = [file_get_contents($file)];
-        $labels[] = $label;
-    }
-}
-```
-
-Now, we can instantiate a new [Labeled](https://rubixml.github.io/ML/3.0/datasets/labeled.html) dataset object with the imported samples and labels.
-
-```php
 use Rubix\ML\Datasets\Labeled;
 
-$dataset = new Labeled($samples, $labels);
+$datasets = [];
+
+foreach (['train', 'test'] as $split) {
+    $samples = $labels = [];
+
+    foreach (['positive', 'negative'] as $label) {
+        foreach (glob("$split/$label/*.txt") as $file) {
+            $samples[] = [file_get_contents($file)];
+            $labels[] = $label;
+        }
+    }
+
+    $datasets[] = new Labeled($samples, $labels);
+}
+
+[$training, $testing] = $datasets;
 ```
 
 ### Dataset Preparation
@@ -68,17 +70,33 @@ Another common text feature representation are [TF-IDF](https://en.wikipedia.org
 
 ### Instantiating the Learner
 
-The next thing we'll do is define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/3.0/classifiers/multilayer-perceptron.html) classifier. The network uses two hidden blocks. The first block consists of three [Dense](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/dense.html) layers of 256 neurons each with a [SiLU](https://rubixml.github.io/ML/3.0/neural-network/activation-functions/silu.html) [Activation](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/activation.html) layer after each one (the middle layer has no bias and is followed by a [Batch Norm](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/batch-norm.html) layer). The second block consists of two 128-neuron Dense layers, the first of which has no bias and is followed by a Batch Norm layer, each followed by a [Swish](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/swish.html) activation layer. The network ends with a 2-unit Dense output layer with one neuron per class. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
+The transformation pipeline from the previous section is defined as a standalone transformer that we'll apply to the datasets before training. We wrap it in a `PersistentTransformer` with a [Filesystem](https://rubixml.github.io/ML/3.0/persisters/filesystem.html) persister so we can save the fitted transformer to disk and reload it later in our validation and prediction scripts. We'll then define the architecture of the neural network and instantiate the [Multilayer Perceptron](https://rubixml.github.io/ML/3.0/classifiers/multilayer-perceptron.html) classifier. The network uses two hidden blocks. The first block consists of three [Dense](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/dense.html) layers of 256 neurons each with a [SiLU](https://rubixml.github.io/ML/3.0/neural-network/activation-functions/silu.html) [Activation](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/activation.html) layer after each one (the middle layer has no bias and is followed by a [Batch Norm](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/batch-norm.html) layer). The second block consists of two 128-neuron Dense layers, the first of which has no bias and is followed by a Batch Norm layer, each followed by a [Swish](https://rubixml.github.io/ML/3.0/neural-network/hidden-layers/swish.html) activation layer. The network ends with a 2-unit Dense output layer with one neuron per class. We've found that this architecture works fairly well for this problem but feel free to experiment on your own.
 
 ```php
-use Rubix\ML\PersistentModel;
-use Rubix\ML\Pipeline;
+use Rubix\ML\Transformers\PersistentTransformer;
+use Rubix\ML\Transformers\Pipeline;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Tokenizers\NGram;
+use Rubix\ML\Persisters\Filesystem;
+
+$transformer = new PersistentTransformer(
+    base: new Pipeline([
+        new TextNormalizer(),
+        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
+        new FloatTypeConverter(),
+        new TfIdfTransformer(sublinear: true),
+        new ZScaleStandardizer(),
+    ]),
+    persister: new Filesystem('transformer.rbx', true)
+);
+```
+
+```php
+use Rubix\ML\PersistentModel;
 use Rubix\ML\Classifiers\MultilayerPerceptron;
 use Rubix\ML\NeuralNet\Layers\Dense;
 use Rubix\ML\NeuralNet\Layers\Activation;
@@ -90,13 +108,7 @@ use Rubix\ML\NeuralNet\Optimizers\Schedulers\Constant;
 use Rubix\ML\Persisters\Filesystem;
 
 $estimator = new PersistentModel(
-    base: new Pipeline([
-        new TextNormalizer(),
-        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
-        new FloatTypeConverter(),
-        new TfIdfTransformer(sublinear: true),
-        new ZScaleStandardizer(),
-    ], new MultilayerPerceptron(
+    base: new MultilayerPerceptron(
         hiddenLayers: [
             new Dense(256),
             new Activation(new SiLU()),
@@ -119,10 +131,9 @@ $estimator = new PersistentModel(
         epochs: 100,
         minChange: 1e-5,
         evalInterval: 1,
-        window: 10,
-        holdOut: 0.1,
-    )),
-    persister: new Filesystem('sentiment.rbx', true)
+        window: 10
+    ),
+    persister: new Filesystem('model.rbx', true)
 );
 ```
 
@@ -138,19 +149,43 @@ Before we train, we'll set a [Screen](https://rubixml.github.io/ML/3.0/loggers/s
 use Rubix\ML\Loggers\Screen;
 
 $logger = new Screen();
+```
 
+Remember that the training and testing samples are still raw text at this point, so we need to fit the transformer on the training data and run it over both of the datasets we created before training. First, we call the `fit()` method on the transformer with the training dataset to learn the vocabulary, weights, and scaling parameters. Then, we call `save()` to persist the fitted transformer to disk so that we can reload it later in our validation and prediction scripts.
+
+```php
+$logger->info('Preprocessing dataset');
+
+$transformer->fit($training);
+
+$transformer->save();
+```
+
+Finally, we use the `apply()` method to perform the vectorization and normalization on both of the datasets in place, leaving them ready to be fed into the network.
+
+```php
+$training->apply($transformer);
+
+$testing->apply($transformer);
+```
+
+Since we're using a separate testing dataset to evaluate the model's generalization during training, we attach it to the estimator as the validation dataset using the `setValidationDataset()` method. This way, the validation score is calculated on a set of samples that the network has not been trained on at any point.
+
+```php
 $estimator->setLogger($logger);
+
+$estimator->setValidationDataset($testing);
 ```
 
 Now, you can call the `train()` method on the learner with the training dataset we instantiated earlier as an argument to kick off the training process.
 
 ```php
-$estimator->train($dataset);
+$estimator->train($training);
 ```
 
 ### Validation Score and Loss
 
-During training, the learner will record the validation score and the training loss for each epoch where they are evaluated. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/3.0/cross-validation/metrics/f-beta.html) metric on a hold out portion of the training set called a *validation* set. Contrariwise, the training loss is the value of the cost function (in this case the [Multiclass Cross Entropy](https://rubixml.github.io/ML/3.0/neural-network/cost-functions/multiclass-cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the `progress()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/3.0/extractors/csv.html).
+During training, the learner will record the validation score and the training loss for each epoch where they are evaluated. The validation score is calculated using the default [F Beta](https://rubixml.github.io/ML/3.0/cross-validation/metrics/f-beta.html) metric on the testing dataset registered as the validation set via `setValidationDataset()`. Contrariwise, the training loss is the value of the cost function (in this case the [Multiclass Cross Entropy](https://rubixml.github.io/ML/3.0/neural-network/cost-functions/multiclass-cross-entropy.html) loss) calculated over the samples left in the training set. We can visualize the training progress by plotting these metrics. To output the scores and losses you can call the `progress()` method and pass the resulting iterator to a Writable extractor such as [CSV](https://rubixml.github.io/ML/3.0/extractors/csv.html).
 
 > **Note**: The `evalInterval`, `window`, and `minChange` parameters on the network control how often scores are evaluated and when training is early-stopped if the validation score stops improving.
 
@@ -189,7 +224,15 @@ To test the generalization performance of the trained network we'll use the test
 
 > **Note**: The source code for this example can be found in the [validate.php](https://github.com/RubixML/Sentiment/blob/master/validate.php) file in the project root.
 
-We'll start by importing the testing samples from the `test` folder like we did with the training samples.
+First, we'll set up a [Screen](https://rubixml.github.io/ML/3.0/loggers/screen.html) logger so that status messages are printed to the console as the script progresses.
+
+```php
+use Rubix\ML\Loggers\Screen;
+
+$logger = new Screen();
+```
+
+We'll then start by importing the testing samples from the `test` folder like we did with the training samples.
 
 ```php
 $samples = $labels = [];
@@ -210,20 +253,33 @@ use Rubix\ML\Datasets\Labeled;
 $dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
 ```
 
-Next, we'll use the Persistent Model wrapper to load the network we trained earlier.
+Next, we'll load the transformer we fitted and saved during training as well as the network we trained earlier. We use the static `load()` method on the `PersistentTransformer` and `PersistentModel` wrappers with the [Filesystem](https://rubixml.github.io/ML/3.0/persisters/filesystem.html) persister pointing to the files containing the serialized data. We then call the `cleanup()` method on the estimator to remove the temporary training state from memory.
 
 ```php
 use Rubix\ML\PersistentModel;
+use Rubix\ML\Transformers\PersistentTransformer;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
+$transformer = PersistentTransformer::load(new Filesystem('transformer.rbx'));
+
+$estimator = PersistentModel::load(new Filesystem('model.rbx'));
 
 $estimator->cleanup();
+```
+
+Remember that the testing samples are still raw text at this point, so before we can make any predictions we need to run the transformer over the dataset. The `apply()` method will perform the vectorization and normalization in place, leaving the dataset ready to be fed into the network.
+
+```php
+$logger->info('Preprocessing dataset');
+
+$dataset->apply($transformer);
 ```
 
 Now we can use the estimator to make predictions on the testing set. The `predict()` method on the estimator takes a dataset as input and returns an array of predictions.
 
 ```php
+$logger->info('Making predictions');
+
 $predictions = $estimator->predict($dataset);
 ```
 
@@ -357,13 +413,16 @@ Now that we're confident with our model, let's build a simple script that takes 
 
 > **Note**: The source code for this example can be found in the [predict.php](https://github.com/RubixML/Sentiment/blob/master/predict.php) file in the project root.
 
-First, load the model from storage using the static `load()` method on the Persistent Model meta-estimator and the Filesystem persister pointed to the file containing the serialized model data.
+First, load the transformer and the model from storage using the static `load()` method on the `PersistentTransformer` and `PersistentModel` wrappers and the Filesystem persister pointed to the files containing the serialized data.
 
 ```php
 use Rubix\ML\PersistentModel;
+use Rubix\ML\Transformers\PersistentTransformer;
 use Rubix\ML\Persisters\Filesystem;
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
+$transformer = PersistentTransformer::load(new Filesystem('transformer.rbx'));
+
+$estimator = PersistentModel::load(new Filesystem('model.rbx'));
 ```
 
 Next, we'll use the built-in PHP function `readline()` to prompt the user to enter some text that we'll store in a variable.
@@ -372,7 +431,7 @@ Next, we'll use the built-in PHP function `readline()` to prompt the user to ent
 while (empty($text)) $text = readline("Enter some text to analyze:\n");
 ```
 
-To make a prediction on the text that was just entered, we wrap it in an [Unlabeled](https://rubixml.github.io/ML/3.0/datasets/unlabeled.html) dataset, call the `predict()` method on the estimator, and take the first prediction returned. Since we only have one input feature in this case, the ordering is easy!
+To make a prediction on the text that was just entered, we wrap it in an [Unlabeled](https://rubixml.github.io/ML/3.0/datasets/unlabeled.html) dataset and run the transformer over it to convert the raw text into features. Then, we call the `predict()` method on the estimator and take the first prediction returned. Since we only have one input sample in this case, the ordering is easy!
 
 ```php
 use Rubix\ML\Datasets\Unlabeled;
@@ -381,7 +440,11 @@ $dataset = new Unlabeled([
     [$text],
 ]);
 
-$prediction = current($estimator->predict($dataset));
+$dataset->apply($transformer);
+
+$predictions = $estimator->predict($dataset);
+
+$prediction = current($predictions);
 
 echo "The sentiment is: $prediction" . PHP_EOL;
 ```

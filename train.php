@@ -5,7 +5,8 @@ include __DIR__ . '/vendor/autoload.php';
 use Rubix\ML\Loggers\Screen;
 use Rubix\ML\Datasets\Labeled;
 use Rubix\ML\PersistentModel;
-use Rubix\ML\Pipeline;
+use Rubix\ML\Transformers\PersistentTransformer;
+use Rubix\ML\Transformers\Pipeline;
 use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\WordCountVectorizer;
@@ -29,25 +30,36 @@ $logger = new Screen();
 
 $logger->info('Loading data into memory');
 
-$samples = $labels = [];
+$datasets = [];
 
-foreach (['positive', 'negative'] as $label) {
-    foreach (glob("train/$label/*.txt") as $file) {
-        $samples[] = [file_get_contents($file)];
-        $labels[] = $label;
+foreach (['train', 'test'] as $split) {
+    $samples = $labels = [];
+
+    foreach (['positive', 'negative'] as $label) {
+        foreach (glob("$split/$label/*.txt") as $file) {
+            $samples[] = [file_get_contents($file)];
+            $labels[] = $label;
+        }
     }
+
+    $datasets[] = new Labeled($samples, $labels);
 }
 
-$dataset = new Labeled($samples, $labels);
+[$training, $testing] = $datasets;
 
-$estimator = new PersistentModel(
+$transformer = new PersistentTransformer(
     base: new Pipeline([
         new TextNormalizer(),
         new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
         new FloatTypeConverter(),
         new TfIdfTransformer(sublinear: true),
         new ZScaleStandardizer(),
-    ], new MultilayerPerceptron(
+    ]),
+    persister: new Filesystem('transformer.rbx', true)
+);
+
+$estimator = new PersistentModel(
+    base: new MultilayerPerceptron(
         hiddenLayers: [
             new Dense(256),
             new Activation(new SiLU()),
@@ -70,15 +82,25 @@ $estimator = new PersistentModel(
         epochs: 100,
         minChange: 1e-5,
         evalInterval: 1,
-        window: 10,
-        holdOut: 0.1
-    )),
-    persister: new Filesystem('sentiment.rbx', true)
+        window: 10
+    ),
+    persister: new Filesystem('model.rbx', true)
 );
 
 $estimator->setLogger($logger);
 
-$estimator->train($dataset);
+$logger->info('Preprocessing dataset');
+
+$transformer->fit($training);
+
+$transformer->save();
+
+$training->apply($transformer);
+$testing->apply($transformer);
+
+$estimator->setValidationDataset($testing);
+
+$estimator->train($training);
 
 $extractor = new CSV('progress.csv', true);
 
