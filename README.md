@@ -12,14 +12,27 @@ $ composer create-project rubix/sentiment
 
 > **Note:** Installation may take longer than usual because of the large dataset.
 
+### Optional for best performance
+
+Make sure you have all the necessary build tools installed such as a C compiler and make tools. For example, on an Ubuntu linux system you can enter the following on the command line to install the necessary dependencies.
+
+```sh
+sudo apt-get install make gcc gfortran php-dev libopenblas-dev liblapacke-dev re2c build-essential
+```
+
+Compile and install the [Tensor 4.1+](https://github.com/RubixML/Tensor-Ext) extension using PIE:
+
+```sh
+pie install rubix/tensor_ext:^4.1
+```
+
 ## Requirements
 
 - [PHP](https://php.net) 8.3 or above
-- 16G of system memory or more (the training script raises PHP's `memory_limit` to unlimited at runtime, so plenty of physical memory is required)
 
 ### Recommended
 
-- [Tensor extension](https://github.com/RubixML/Tensor) for faster training and inference
+- [Tensor 4.1+ extension](https://github.com/RubixML/Tensor-Ext) for faster training and inference
 
 ## Tutorial
 
