@@ -4,6 +4,7 @@ include __DIR__ . '/vendor/autoload.php';
 
 use Rubix\ML\Loggers\Screen;
 use Rubix\ML\Datasets\Labeled;
+use Rubix\ML\Transformers\PersistentTransformer;
 use Rubix\ML\PersistentModel;
 use Rubix\ML\Persisters\Filesystem;
 use Rubix\ML\CrossValidation\Reports\AggregateReport;
@@ -27,7 +28,15 @@ foreach (['positive', 'negative'] as $label) {
 
 $dataset = Labeled::build($samples, $labels)->randomize()->take(10000);
 
-$estimator = PersistentModel::load(new Filesystem('sentiment.rbx'));
+$transformer = PersistentTransformer::load(new Filesystem('transformer.rbx'));
+
+$estimator = PersistentModel::load(new Filesystem('model.rbx'));
+
+$estimator->cleanup();
+
+$logger->info('Preprocessing dataset');
+
+$dataset->apply($transformer);
 
 $logger->info('Making predictions');
 
