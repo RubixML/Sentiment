@@ -75,7 +75,7 @@ foreach (['train', 'test'] as $split) {
 
 Neural networks compute a non-linear continuous function and therefore require continuous features as inputs. However, the samples given to us in the IMDB dataset are in raw text format. Therefore, we'll need to convert those text blobs to continuous features before training. We'll do so using the [bag-of-words](https://en.wikipedia.org/wiki/Bag-of-words_model) technique which produces long sparse vectors of word counts using a fixed vocabulary. The entire series of transformations necessary to prepare the incoming dataset for the network can be implemented in a transformer [Pipeline](https://rubixml.github.io/ML/3.0/pipeline.html).
 
-First, we'll convert all characters to lowercase using [Text Normalizer](https://rubixml.github.io/ML/3.0/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://rubixml.github.io/ML/3.0/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text, [Float Type Converter](https://rubixml.github.io/ML/3.0/transformers/float-type-converter.html) casts those counts to floats, and [TF-IDF Transformer](https://rubixml.github.io/ML/3.0/transformers/tf-idf-transformer.html) applies a sublinear weighting scheme to those counts. Finally, [Z Scale Standardizer](https://rubixml.github.io/ML/3.0/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
+First, we'll convert all characters to lowercase using [Text Normalizer](https://rubixml.github.io/ML/3.0/transformers/text-normalizer.html) so that every word is represented by only a single token. Then, [Word Count Vectorizer](https://rubixml.github.io/ML/3.0/transformers/word-count-vectorizer.html) creates a fixed-length continuous feature vector of word counts from the raw text using the Porter English stemmer to tokenize the text, so that morphological variants of a word (such as "running" and "runs") are mapped to the same token, [Float Type Converter](https://rubixml.github.io/ML/3.0/transformers/float-type-converter.html) casts those counts to floats, and [TF-IDF Transformer](https://rubixml.github.io/ML/3.0/transformers/tf-idf-transformer.html) applies a sublinear weighting scheme to those counts. Finally, [Z Scale Standardizer](https://rubixml.github.io/ML/3.0/transformers/z-scale-standardizer.html) takes the TF-IDF weighted counts and centers and scales the sample matrix to have 0 mean and unit variance. This last step will help the neural network converge quicker.
 
 The Word Count Vectorizer is a bag-of-words feature extractor that uses a fixed vocabulary and term counts to quantify the words that appear in a document. We elect to limit the size of the vocabulary to 10,240 of the most frequent words that satisfy the criteria of appearing in at least 2 different documents but no more than a certain proportion of documents. In this way, we limit the amount of *noise* words that enter the training set.
 
@@ -94,12 +94,16 @@ use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Tokenizers\NGram;
+use Rubix\ML\Tokenizers\WordStemmer;
+use Rubix\ML\Tokenizers\Stemmers\PorterEnglish;
 use Rubix\ML\Persisters\Filesystem;
+
+$tokenizer = new NGram(1, 2, new WordStemmer(new PorterEnglish()));
 
 $transformer = new PersistentTransformer(
     base: new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
+        new WordCountVectorizer(10240, 2, 0.4, $tokenizer),
         new FloatTypeConverter(),
         new TfIdfTransformer(sublinear: true),
         new ZScaleStandardizer(),
@@ -144,7 +148,7 @@ $estimator = new PersistentModel(
         epochs: 100,
         minChange: 1e-5,
         evalInterval: 1,
-        window: 10
+        window: 5
     ),
     persister: new Filesystem('model.rbx', true)
 );

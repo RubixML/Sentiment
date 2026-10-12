@@ -11,6 +11,8 @@ use Rubix\ML\Transformers\TextNormalizer;
 use Rubix\ML\Transformers\FloatTypeConverter;
 use Rubix\ML\Transformers\WordCountVectorizer;
 use Rubix\ML\Tokenizers\NGram;
+use Rubix\ML\Tokenizers\WordStemmer;
+use Rubix\ML\Tokenizers\Stemmers\PorterEnglish;
 use Rubix\ML\Transformers\TfIdfTransformer;
 use Rubix\ML\Transformers\ZScaleStandardizer;
 use Rubix\ML\Classifiers\MultilayerPerceptron;
@@ -28,29 +30,12 @@ ini_set('memory_limit', '-1');
 
 $logger = new Screen();
 
-$logger->info('Loading data into memory');
-
-$datasets = [];
-
-foreach (['train', 'test'] as $split) {
-    $samples = $labels = [];
-
-    foreach (['positive', 'negative'] as $label) {
-        foreach (glob("$split/$label/*.txt") as $file) {
-            $samples[] = [file_get_contents($file)];
-            $labels[] = $label;
-        }
-    }
-
-    $datasets[] = new Labeled($samples, $labels);
-}
-
-[$training, $testing] = $datasets;
+$tokenizer = new NGram(1, 2, new WordStemmer(new PorterEnglish()));
 
 $transformer = new PersistentTransformer(
     base: new Pipeline([
         new TextNormalizer(),
-        new WordCountVectorizer(10240, 2, 0.4, new NGram(1, 2)),
+        new WordCountVectorizer(10240, 2, 0.4, $tokenizer),
         new FloatTypeConverter(),
         new TfIdfTransformer(sublinear: true),
         new ZScaleStandardizer(),
@@ -82,12 +67,31 @@ $estimator = new PersistentModel(
         epochs: 100,
         minChange: 1e-5,
         evalInterval: 1,
-        window: 10
+        window: 5
     ),
     persister: new Filesystem('model.rbx', true)
 );
 
 $estimator->setLogger($logger);
+
+$logger->info('Loading data into memory');
+
+$datasets = [];
+
+foreach (['train', 'test'] as $split) {
+    $samples = $labels = [];
+
+    foreach (['positive', 'negative'] as $label) {
+        foreach (glob("$split/$label/*.txt") as $file) {
+            $samples[] = [file_get_contents($file)];
+            $labels[] = $label;
+        }
+    }
+
+    $datasets[] = new Labeled($samples, $labels);
+}
+
+[$training, $testing] = $datasets;
 
 $logger->info('Preprocessing dataset');
 
